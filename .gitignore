@@ -21,3 +21,4 @@ build/
 # Local databases & logs
 *.db
 *.sqlite3
+

@@ -9,9 +9,11 @@
 - **Currency & Formatting**: PHP (`PHP 1,250.00`), Dates (`12 Nov 2026`)
 
 ## 2. Hard Architectural Rules (Never Break)
-- **Layering**: `ui/` -> `services/` -> `ds/`, `models/`, `db/`.
-  - Layers talk strictly downward. No business rules in `ui/`.
-  - `ds/`, `services/`, and `db/` contain **NO Flet imports** and run under `pytest` with no UI.
+- **Frontend / Backend Separation**:
+  - `frontend/`: UI screens & components using Flet desktop.
+  - `backend/`: Core business logic (`services/`), custom data structures (`ds/`), models (`models/`), and persistence (`db/`).
+  - `frontend/` calls `backend.services`. Layers talk strictly downward. No business rules in `frontend/`.
+  - `backend/` contains **NO Flet imports** and runs under `pytest` with no UI.
 - **From-Scratch Data Structures in `ds/`**:
   - Linked List, Stack, Min-Heap, Max-Heap, BST, Trie, Prefix Sums, Size-k Heap.
   - **ABSOLUTE BAN**: `heapq`, `dict`, and `sorted` are prohibited in `ds/` and `services/` (allowed ONLY inside `benchmarks/` as naive baselines).
@@ -31,5 +33,5 @@
 ## 4. Current State & Next Steps
 - **Active Phase**: Phase 0: Foundations
 - **Current Task**: Task 0.2 Write pinned requirements.txt
-- **Last Completed Task**: Task 0.1 Folder layout from Doc 4.5 complete (on 07 Nov 2026, 00:41)
+- **Last Completed Task**: Task 0.1 Frontend/Backend separation complete (on 07 Nov 2026, 00:48)
 - **Last Test Status**: 2 tests passed (100%)

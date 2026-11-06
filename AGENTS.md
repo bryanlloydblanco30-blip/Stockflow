@@ -32,9 +32,10 @@ When two sources disagree, the higher one wins:
 ## 3. Hard Rules (Never Break)
 
 ### Structure
-- **Layers**: `ui/` calls `services/`, which calls `ds/`, `models/`, `db/`. A layer never calls upward. No business rule lives in `ui/`.
-- `ds/`, `services/`, `db/` contain **no Flet imports**. They must run under pytest with no UI.
-- `ds/`, `services/`, `db/` are **platform neutral**: no Windows-only or Android-only calls. The database file location comes from one function in `db/` so each platform can choose its own folder (D17).
+- **Frontend / Backend Separation**:
+  - `frontend/` (Flet UI screens & components) calls `backend/services/`, which calls `backend/ds/`, `backend/models/`, `backend/db/`. A layer never calls upward. No business rule lives in `frontend/`.
+  - `backend/` (`ds/`, `services/`, `db/`, `models/`) contains **no Flet imports**. It must run under pytest with no UI.
+  - `backend/` is **platform neutral**: no Windows-only or Android-only calls. The database file location comes from one function in `backend/db/` so each platform can choose its own folder (D17).
 
 ### Data Structures
 - Linked list, min-heap, max-heap, BST, trie, stack, prefix sums and the size-k heap are **written from scratch** in `ds/`.

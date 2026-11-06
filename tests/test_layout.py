@@ -1,6 +1,6 @@
 """
 tests/test_layout.py
-Verification test for Task 0.1: Package and folder layout.
+Verification test for Project Layout: Frontend and Backend Separation.
 Runs under both unittest (built-in) and pytest.
 """
 
@@ -12,13 +12,14 @@ import unittest
 class TestProjectLayout(unittest.TestCase):
     def test_packages_are_importable(self):
         packages = [
-            "ds",
-            "models",
-            "services",
-            "db",
-            "ui",
-            "ui.components",
-            "ui.screens",
+            "backend",
+            "backend.ds",
+            "backend.models",
+            "backend.db",
+            "backend.services",
+            "frontend",
+            "frontend.components",
+            "frontend.screens",
             "data",
             "benchmarks",
             "tests",
@@ -30,6 +31,12 @@ class TestProjectLayout(unittest.TestCase):
     def test_required_directories_exist(self):
         root = Path(__file__).resolve().parent.parent
         expected_dirs = [
+            root / "backend" / "ds",
+            root / "backend" / "models",
+            root / "backend" / "db",
+            root / "backend" / "services",
+            root / "frontend" / "components",
+            root / "frontend" / "screens",
             root / "docs" / "adt",
             root / "design" / "wireframes",
             root / "benchmarks" / "results",
@@ -41,4 +48,3 @@ class TestProjectLayout(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
