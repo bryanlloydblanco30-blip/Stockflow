@@ -46,3 +46,16 @@
   - Pure node-based implementation with zero `heapq`/`dict`/`sorted`.
 - **Anything Left Open**:
   - Proceed to Task 1.3: Min-heap implementation.
+
+## Task 1.3: Min-Heap Implementation
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/ds/min_heap.py`: Implemented strictly from scratch Min-Heap (`_HeapEntry`, `insert`, `peek_min`, `extract_min`, `remove_specific`, `ordered_read`, `size`, `is_empty`) with $O(\log n)$ sift up/down, $O(n)$ search + $O(\log n)$ repair for remove_specific, and non-destructive ordered traversal. Zero `heapq` imported.
+  - `tests/test_ds_heaps.py`: Added 6 unit tests covering empty heap errors, single item, compound key with tie-break comparison, non-destructive `ordered_read`, `remove_specific` (root, leaf, internal, non-existent), and 200-item randomized validation against sorted oracle.
+- **Tests Added & Result**:
+  - 6 new unit tests in `tests/test_ds_heaps.py`. Full test suite: 34/34 passed in 0.45s.
+- **Rules / Edge Cases Covered**:
+  - Doc 12.1 ADT testing requirements (empty, single, duplicates, deletion, randomized validation against trusted result, tie-breaks).
+  - Hard rule: zero `heapq` in `ds/`.
+- **Anything Left Open**:
+  - Proceed to Task 1.4: Max-Heap implementation.
