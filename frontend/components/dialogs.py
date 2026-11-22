@@ -38,15 +38,15 @@ def build_page_header(
         content=rounded_button("More⌄", width=150),
         items=[
             ft.PopupMenuItem(
-                content="Sell states",
+                text="Sell states",
                 on_click=lambda _: on_navigate("sell_states"),
             ),
             ft.PopupMenuItem(
-                content="Adjust stock",
+                text="Adjust stock",
                 on_click=lambda _: on_navigate("adjust"),
             ),
             ft.PopupMenuItem(
-                content="History",
+                text="History",
                 on_click=lambda _: on_navigate("history"),
             ),
         ],

@@ -48,7 +48,7 @@ def rounded_button(
 ) -> ft.ElevatedButton:
     """Pill-shaped button matching the Figma design."""
     return ft.ElevatedButton(
-        content=label,
+        text=label,
         icon=icon,
         on_click=on_click,
         disabled=disabled,
