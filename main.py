@@ -18,7 +18,12 @@ def main():
     try:
         import flet as ft
         from frontend.app import main as app_main
-        ft.app(target=app_main, assets_dir="assets")
+
+        is_web = "--web" in sys.argv
+        view_mode = ft.AppView.WEB_BROWSER if is_web else ft.AppView.FLET_APP
+        port = 8550 if is_web else 0
+
+        ft.app(target=app_main, assets_dir="assets", port=port, view=view_mode)
     except ImportError:
         print("[Notice] Flet is not yet installed. Install with: pip install -r requirements.txt")
 
