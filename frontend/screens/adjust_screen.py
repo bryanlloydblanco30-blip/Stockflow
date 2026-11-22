@@ -26,7 +26,7 @@ from design.tokens import (
 )
 
 
-def render(on_cancel):
+def render(on_cancel=None):
     """Renders the Figma Adjust count screen."""
     if ft is None:
         return None
@@ -36,7 +36,7 @@ def render(on_cancel):
         bgcolor=BTN_LAVENDER_BG,
         border_radius=24,
         padding=ft.padding.symmetric(horizontal=28, vertical=14),
-        on_click=lambda _: on_cancel(),
+        on_click=lambda _: on_cancel() if on_cancel else None,
     )
 
     # Left form card
