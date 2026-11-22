@@ -20,3 +20,16 @@
 - **Anything Left Open**:
   - Proceed with packaging verification (Task 0.5) and Phase 1 data structures implementation.
 
+
+## Task 1.1: Doubly Linked List Implementation
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/ds/linked_list.py`: Implemented from-scratch doubly linked list (`Node`, `add_front`, `add_end`, `find`, `remove`, `traverse`, `size`, `is_empty`) with zero built-in list storage shortcuts.
+  - `tests/test_ds_linked_list.py`: Added 12 comprehensive unit test cases covering empty list, single item, ordering, predicate find, removal cases (head, tail, middle, duplicate, non-existent), and 500-step randomized operations verified against a trusted oracle list.
+- **Tests Added & Result**:
+  - 12 new unit tests in `tests/test_ds_linked_list.py`. Full test suite: 24/24 passed in 0.44s.
+- **Rules / Edge Cases Covered**:
+  - Doc 12.1 ADT testing requirements (empty, single item, duplicates, deletion cases, large random input checked against trusted result).
+  - Pure Python, zero `heapq`/`dict`/`sorted` used in `ds/`.
+- **Anything Left Open**:
+  - Proceed to Task 1.2: Stack implementation.
