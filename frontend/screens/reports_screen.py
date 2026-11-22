@@ -116,7 +116,6 @@ def render(on_drill_down=None):
             alignment=ft.alignment.center,
             expand=True,
             on_click=lambda _, l=lbl: on_drill_down(l) if on_drill_down else None,
-            cursor=ft.MouseCursor.CLICK,
         )
         for lbl in links
     ]

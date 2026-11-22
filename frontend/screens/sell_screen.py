@@ -72,7 +72,6 @@ def render(on_checkout_click=None):
             bgcolor=BTN_LAVENDER_BG,
             border_radius=18,
             padding=ft.padding.symmetric(horizontal=16, vertical=8),
-            cursor=ft.MouseCursor.CLICK,
         )
 
         row_ctrl = ft.Container(
@@ -133,7 +132,6 @@ def render(on_checkout_click=None):
                     padding=ft.padding.symmetric(vertical=16),
                     alignment=ft.alignment.center,
                     on_click=lambda _: on_checkout_click() if on_checkout_click else None,
-                    cursor=ft.MouseCursor.CLICK,
                 ),
             ],
             spacing=8,

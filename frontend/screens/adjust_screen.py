@@ -37,7 +37,6 @@ def render(on_cancel):
         border_radius=24,
         padding=ft.padding.symmetric(horizontal=28, vertical=14),
         on_click=lambda _: on_cancel(),
-        cursor=ft.MouseCursor.CLICK,
     )
 
     # Left form card
@@ -77,7 +76,6 @@ def render(on_cancel):
         border_radius=24,
         padding=ft.padding.symmetric(vertical=16),
         alignment=ft.alignment.center,
-        cursor=ft.MouseCursor.CLICK,
     )
 
     history_note = ft.Text(

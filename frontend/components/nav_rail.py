@@ -57,7 +57,6 @@ def build_sidebar(active_page: str, on_navigate, on_back_to_start):
     brand_header = ft.Container(
         content=ft.Row(controls=[brand_logo, brand_title], spacing=12),
         on_click=lambda _: on_back_to_start(),
-        cursor=ft.MouseCursor.CLICK,
     )
 
     # Nav buttons
@@ -80,7 +79,6 @@ def build_sidebar(active_page: str, on_navigate, on_back_to_start):
             border_radius=28,
             padding=ft.padding.symmetric(horizontal=20, vertical=14),
             on_click=lambda _, pid=page_id: on_navigate(pid),
-            cursor=ft.MouseCursor.CLICK,
         )
         nav_buttons.append(btn)
 
@@ -117,7 +115,6 @@ def build_sidebar(active_page: str, on_navigate, on_back_to_start):
         padding=ft.padding.symmetric(vertical=14),
         alignment=ft.alignment.center,
         on_click=lambda _: on_back_to_start(),
-        cursor=ft.MouseCursor.CLICK,
     )
 
     return ft.Container(

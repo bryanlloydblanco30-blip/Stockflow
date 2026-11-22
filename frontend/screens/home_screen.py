@@ -37,7 +37,6 @@ def render(on_navigate):
         border_radius=24,
         padding=ft.padding.symmetric(horizontal=32, vertical=14),
         on_click=lambda _: on_navigate("sell"),
-        cursor=ft.MouseCursor.CLICK,
     )
 
     # 4 StatCards
@@ -109,7 +108,6 @@ def render(on_navigate):
         border_radius=28,
         padding=ft.padding.symmetric(horizontal=28, vertical=22),
         on_click=lambda _: on_navigate("sell"),
-        cursor=ft.MouseCursor.CLICK,
     )
 
     return ft.Column(

@@ -59,7 +59,6 @@ def render(on_void_last=None):
                 border_radius=18,
                 padding=ft.padding.symmetric(horizontal=16, vertical=8),
                 on_click=lambda _: on_void_last() if on_void_last else None,
-                cursor=ft.MouseCursor.CLICK,
             )
         table_rows.append([r[0], badge, r[2], r[3], action])
 

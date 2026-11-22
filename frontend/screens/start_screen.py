@@ -119,7 +119,6 @@ def render(on_select_page):
             border_radius=26,
             padding=ft.padding.symmetric(horizontal=24, vertical=16),
             on_click=lambda _, pid=page_id: on_select_page(pid),
-            cursor=ft.MouseCursor.CLICK,
         )
         nav_buttons.append(btn)
 

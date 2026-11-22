@@ -48,7 +48,6 @@ def render(on_product_click=None, on_register_click=None):
         border_radius=24,
         padding=ft.padding.symmetric(horizontal=24, vertical=14),
         on_click=lambda _: on_register_click() if on_register_click else None,
-        cursor=ft.MouseCursor.CLICK,
     )
 
     search_field = ft.TextField(
