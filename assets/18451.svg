@@ -1,0 +1,21 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Store mark" clip-path="url(#clip0_0_81)">
+<path id="Vector" d="M28 0H12C5.37258 0 0 5.37258 0 12V28C0 34.6274 5.37258 40 12 40H28C34.6274 40 40 34.6274 40 28V12C40 5.37258 34.6274 0 28 0Z" fill="#245C45"/>
+<path id="Vector_2" d="M10 18H30V31H10V18Z" fill="#FFF5DE"/>
+<path id="Vector_3" d="M8 17L11 9H29L32 17H8Z" fill="#F2B69B"/>
+<g id="Vector_4">
+<path d="M14 10V17ZM20 10V17ZM26 10V17Z" fill="black"/>
+<path d="M14 10V17M20 10V17M26 10V17" stroke-width="3" stroke="#FFF5DE"/>
+</g>
+<path id="Vector_5" d="M26 22H23C22.4477 22 22 22.4477 22 23V30C22 30.5523 22.4477 31 23 31H26C26.5523 31 27 30.5523 27 30V23C27 22.4477 26.5523 22 26 22Z" fill="#245C45"/>
+<g id="Vector_6">
+<path d="M13 24H18Z" fill="black"/>
+<path d="M13 24H18" stroke-width="3" stroke-linecap="round" stroke="#245C45"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_81">
+<rect width="40" height="40" fill="white"/>
+</clipPath>
+</defs>
+</svg>

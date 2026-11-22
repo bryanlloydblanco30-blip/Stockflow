@@ -1,0 +1,7 @@
+# StockFlow Dependencies (Pinned per AGENTS.md / Doc 4.2)
+# Never upgrade without explicit human approval.
+
+flet==0.28.3
+pytest==8.4.2
+Faker==37.1.0
+
