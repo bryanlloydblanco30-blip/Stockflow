@@ -18,7 +18,7 @@ def main():
     try:
         import flet as ft
         from frontend.app import main as app_main
-        ft.app(target=app_main)
+        ft.app(target=app_main, assets_dir="assets")
     except ImportError:
         print("[Notice] Flet is not yet installed. Install with: pip install -r requirements.txt")
 
