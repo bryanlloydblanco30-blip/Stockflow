@@ -98,3 +98,26 @@
   - Hard rule: zero `dict` shortcuts for trie lookup.
 - **Anything Left Open**:
   - Proceed to Task 1.7: Prefix Sums implementation.
+
+## Task 1.7: Prefix Sums Implementation
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/ds/prefix_sums.py`: Implemented from-scratch Prefix Sums array (`build`, `range_sum`, `size`, `is_empty`) providing $O(n)$ construction and $O(1)$ range sum queries for date-range financial reporting.
+  - `tests/test_ds_prefix_topk.py`: Added 5 unit tests covering empty array, single element, full/sub/single range queries, index bounds validation, and 100-step randomized queries verified against Python `sum()`.
+- **Tests Added & Result**:
+  - 5 new unit tests in `tests/test_ds_prefix_topk.py`.
+- **Rules / Edge Cases Covered**:
+  - Doc 12.1 ADT requirements. Zero built-ins in `ds/`.
+
+## Task 1.8: Size-k Heap Routine Implementation & Phase 1 Exit Gate Passed
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/ds/size_k_heap.py`: Implemented from-scratch Size-k Heap routine supporting bounded $O(n \log k)$ top-k (using MinHeap) and bottom-k (using MaxHeap) rankings without full list sorting or built-in shortcuts.
+  - `tests/test_ds_prefix_topk.py`: Added 5 unit tests covering top-k ($< k$, $= k$, $> k$), bottom-k, duplicate scores, and 500-element randomized streams verified against trusted sort oracle.
+- **Tests Added & Result**:
+  - Total 61/61 unit tests passing across all 8 data structures and project layout in 0.50s.
+- **Phase 1 Exit Gate**:
+  - All 8 data structures implemented from scratch. Every ADT document in `docs/adt/` fulfilled.
+  - Zero imports of `heapq`, `sorted`, or `dict` lookup shortcuts in `backend/ds/`.
+- **Anything Left Open**:
+  - Phase 1 complete. Proceed to Phase 2: Models and Storage.
