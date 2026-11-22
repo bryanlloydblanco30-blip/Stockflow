@@ -1,99 +1,98 @@
 """
 frontend/screens/sell_states_screen.py
-Sell states screen matching the Figma SellStatesPage:
-- Empty cart
-- Not enough stock
-- Only expired stock left
+Checkout and inventory availability state cards.
+Ported from frontend/StockFlow/main.py StockFlow.sell_states().
 """
 
-try:
-    import flet as ft
-except ImportError:
-    ft = None
+from __future__ import annotations
 
-from design.tokens import (
-    COLOR_BORDER,
-    COLOR_SURFACE_ALT,
-    COLOR_TEXT_MAIN,
-    COLOR_TEXT_MUTED,
-    BTN_BLUE_BG,
-    BTN_BLUE_TEXT,
-    TONE_YELLOW_BG,
-    TONE_ROSE_BG,
-)
-from frontend.components.stepper import build_stepper
+import flet as ft
+
+from design.tokens import COLOR_BRAND_GREEN, COLOR_TEXT_MUTED
+from frontend.components.primitives import text, rounded_button, card
+
+GREEN = COLOR_BRAND_GREEN
+MUTED = COLOR_TEXT_MUTED
 
 
-def render():
-    """Renders the Figma Sell States screen."""
-    if ft is None:
-        return None
-
-    # Card 1: Empty cart
-    card1 = ft.Container(
-        content=ft.Column(
-            controls=[
-                ft.Row([ft.Image(src="assets/0b38a.svg", width=22, height=22), ft.Text("Empty cart", size=14, color=COLOR_TEXT_MUTED)]),
-                ft.Text("Cart is empty. Scan a product to start.", size=17, weight=ft.FontWeight.BOLD, color=COLOR_TEXT_MAIN),
-                ft.Container(
-                    content=ft.Text("Checkout", size=16, color="#666674"),
-                    bgcolor="#CFCED8",
-                    border_radius=24,
-                    padding=ft.padding.symmetric(horizontal=24, vertical=12),
-                    alignment=ft.alignment.center,
-                ),
-            ],
-            spacing=16,
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+def render(compact: bool = False) -> ft.Control:
+    """Render the sell-states reference screen."""
+    controls = [
+        card(
+            ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Icon(ft.Icons.SHOPPING_CART_OUTLINED, color=GREEN),
+                            text("Empty cart", color=MUTED),
+                        ]
+                    ),
+                    text(
+                        "Cart is empty. Scan a product to start.",
+                        weight=ft.FontWeight.W_600,
+                    ),
+                    rounded_button("Checkout", disabled=True),
+                ],
+                spacing=18,
+            ),
+            height=245,
         ),
-        bgcolor=COLOR_SURFACE_ALT,
-        border=ft.border.all(1, COLOR_BORDER),
-        border_radius=30,
-        padding=28,
-        expand=True,
-    )
-
-    # Card 2: Not enough stock
-    card2 = ft.Container(
-        content=ft.Column(
-            controls=[
-                ft.Row([ft.Image(src="assets/bf69b.svg", width=22, height=22), ft.Text("Not enough stock", size=14, color=COLOR_TEXT_MUTED)]),
-                ft.Text("Fresh Milk 1L × 5", size=16, color=COLOR_TEXT_MAIN),
-                ft.Text("Only 3 left. Lower the quantity.", size=17, weight=ft.FontWeight.BOLD, color="#C70028"),
-                build_stepper(5),
-            ],
-            spacing=16,
+        card(
+            ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Icon(ft.Icons.INVENTORY_2_OUTLINED, color=GREEN),
+                            text("Not enough stock", color=MUTED),
+                        ]
+                    ),
+                    text("Fresh Milk 1L × 5"),
+                    text(
+                        "Only 3 left. Lower the quantity.",
+                        color="#C70028",
+                        weight=ft.FontWeight.W_600,
+                    ),
+                    ft.Row(
+                        [
+                            ft.IconButton(ft.Icons.REMOVE),
+                            text("5"),
+                            ft.IconButton(ft.Icons.ADD),
+                        ]
+                    ),
+                ],
+                spacing=14,
+            ),
+            bgcolor="#FFF3DC",
+            height=245,
         ),
-        bgcolor=TONE_YELLOW_BG,
-        border=ft.border.all(1, COLOR_BORDER),
-        border_radius=30,
-        padding=28,
-        expand=True,
-    )
-
-    # Card 3: Only expired stock left
-    card3 = ft.Container(
-        content=ft.Column(
-            controls=[
-                ft.Row([ft.Image(src="assets/bf69b.svg", width=22, height=22), ft.Text("Only expired stock left", size=14, color=COLOR_TEXT_MUTED)]),
-                ft.Text("Only expired stock left. It cannot be sold.", size=17, weight=ft.FontWeight.BOLD, color="#C70028"),
-                ft.Text("Go to write-off list ›", size=15, weight=ft.FontWeight.W_600, color="#C70028"),
-            ],
-            spacing=16,
+        card(
+            ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Icon(ft.Icons.INVENTORY_2_OUTLINED, color=GREEN),
+                            text("Only expired stock left", color=MUTED),
+                        ]
+                    ),
+                    text(
+                        "Only expired stock left. It cannot be sold.",
+                        color="#C70028",
+                        weight=ft.FontWeight.W_600,
+                    ),
+                    ft.TextButton("Go to write-off list"),
+                ],
+                spacing=16,
+            ),
+            bgcolor="#FBEAE4",
+            height=200,
         ),
-        bgcolor=TONE_ROSE_BG,
-        border=ft.border.all(1, COLOR_BORDER),
-        border_radius=30,
-        padding=28,
-        expand=True,
-    )
+    ]
 
-    return ft.Column(
-        controls=[
-            ft.Row(controls=[card1, card2], spacing=24),
-            ft.Container(height=24),
-            ft.Row(controls=[card3, ft.Container(expand=True)], spacing=24),
+    return ft.ResponsiveRow(
+        [
+            ft.Container(control, col={"sm": 12, "md": 6})
+            for control in controls
         ],
-        spacing=0,
-        expand=True,
+        spacing=22,
+        run_spacing=22,
     )

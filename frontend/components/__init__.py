@@ -1,2 +1,1 @@
 """Reusable desktop UI components."""
-

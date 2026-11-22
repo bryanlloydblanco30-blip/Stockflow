@@ -1,87 +1,82 @@
 """
 frontend/screens/history_screen.py
-Transaction history log screen matching the Figma HistoryPage:
-- Filter chips: All, Sale, Receive, Void, Adjustment, Write-off
-- DataTable with Date, Type, Details, Amount, and action button (Void last sale)
-- Undo hint
+Transaction history with type filter chips and void button.
+Ported from frontend/StockFlow/main.py StockFlow.history().
 """
 
-try:
-    import flet as ft
-except ImportError:
-    ft = None
+from __future__ import annotations
+
+import flet as ft
 
 from design.tokens import (
-    BTN_BLUE_BG,
-    BTN_BLUE_TEXT,
-    BTN_LAVENDER_BG,
-    BTN_LAVENDER_TEXT,
     COLOR_TEXT_MUTED,
+    PALE_BLUE,
+    PALE_LAVENDER,
 )
-from frontend.components.status_badge import build_status_badge
-from frontend.components.data_table import build_data_table
+from frontend.components.primitives import (
+    text,
+    rounded_button,
+    card,
+    badge,
+    data_table,
+)
 
-HISTORY_DATA = [
-    ["7 Nov 10:42", "Sale", "3 items", "PHP 184.00", "green"],
-    ["7 Nov 09:15", "Receive", "Fresh Milk 1L × 24", "PHP 1,152.00", "amber"],
-    ["6 Nov 17:30", "Write-off", "Yogurt cup × 2", "PHP 70.00", "red"],
-    ["6 Nov 12:05", "Sale", "2 items", "PHP 90.00", "green"],
+MUTED = COLOR_TEXT_MUTED
+
+# ── Sample history data (will be replaced by backend services) ────────
+_HISTORY_DATA = [
+    ("7 Nov 10:42", "Sale", "3 items", "PHP 184.00", "green"),
+    ("7 Nov 09:15", "Receive", "Fresh Milk 1L × 24", "PHP 1,152.00", "amber"),
+    ("6 Nov 17:30", "Write-off", "Yogurt cup × 2", "PHP 70.00", "red"),
+    ("6 Nov 12:05", "Sale", "2 items", "PHP 90.00", "green"),
 ]
 
 
-def render(on_void_last=None):
-    """Renders the Figma Transaction History screen."""
-    if ft is None:
-        return None
+def render(
+    history_filter: str = "All",
+    on_filter_change=None,
+    compact: bool = False,
+) -> ft.Control:
+    """Render the transaction history screen."""
+    rows = []
+    for index, row in enumerate(_HISTORY_DATA):
+        if history_filter != "All" and row[1] != history_filter:
+            continue
+        action = (
+            rounded_button("Void last sale", bgcolor=PALE_LAVENDER)
+            if index == 0 and history_filter == "All"
+            else text("")
+        )
+        rows.append((row[0], badge(row[1], row[4]), row[2], row[3], action))
 
-    # Filter chips
-    filter_chips = ft.Row(
-        controls=[
-            ft.Container(content=ft.Text("All", size=14, weight=ft.FontWeight.BOLD, color=BTN_BLUE_TEXT), bgcolor=BTN_BLUE_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-            ft.Container(content=ft.Text("Sale", size=14, color=BTN_LAVENDER_TEXT), bgcolor=BTN_LAVENDER_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-            ft.Container(content=ft.Text("Receive", size=14, color=BTN_LAVENDER_TEXT), bgcolor=BTN_LAVENDER_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-            ft.Container(content=ft.Text("Void", size=14, color=BTN_LAVENDER_TEXT), bgcolor=BTN_LAVENDER_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-            ft.Container(content=ft.Text("Adjustment", size=14, color=BTN_LAVENDER_TEXT), bgcolor=BTN_LAVENDER_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-            ft.Container(content=ft.Text("Write-off", size=14, color=BTN_LAVENDER_TEXT), bgcolor=BTN_LAVENDER_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-        ],
-        spacing=12,
-    )
-
-    # Table rows
-    table_rows = []
-    for i, r in enumerate(HISTORY_DATA):
-        badge = build_status_badge(r[1], r[4])
-        action = ""
-        if i == 0:
-            action = ft.Container(
-                content=ft.Text("Void last sale", size=13, weight=ft.FontWeight.W_500, color=BTN_LAVENDER_TEXT),
-                bgcolor=BTN_LAVENDER_BG,
-                border_radius=18,
-                padding=ft.padding.symmetric(horizontal=16, vertical=8),
-                on_click=lambda _: on_void_last() if on_void_last else None,
+    filters = ft.Row(
+        [
+            rounded_button(
+                option,
+                lambda _, v=option: on_filter_change(v)
+                if on_filter_change
+                else None,
+                PALE_BLUE if history_filter == option else PALE_LAVENDER,
             )
-        table_rows.append([r[0], badge, r[2], r[3], action])
-
-    table = build_data_table(
-        headers=["Date", "Type", "Details", "Amount", ""],
-        rows=table_rows,
-    )
-
-    hint = ft.Text(
-        "Undo is available only on the latest transaction.",
-        size=14,
-        color=COLOR_TEXT_MUTED,
+            for option in [
+                "All", "Sale", "Receive", "Void", "Adjustment", "Write-off"
+            ]
+        ],
+        wrap=True,
     )
 
     return ft.Column(
-        controls=[
-            filter_chips,
-            ft.Container(height=16),
-            table,
-            ft.Container(height=16),
-            hint,
+        [
+            filters,
+            card(
+                data_table(["Date", "Type", "Details", "Amount", ""], rows),
+                padding=10,
+            ),
+            text(
+                "Undo is available only on the latest transaction.",
+                13,
+                MUTED,
+            ),
         ],
-        spacing=0,
-        expand=True,
-        scroll=ft.ScrollMode.AUTO,
+        spacing=22,
     )

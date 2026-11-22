@@ -1,140 +1,124 @@
 """
 frontend/components/nav_rail.py
-Sidebar component matching the Figma design:
-Brand header, 5 nav buttons (Home, Sell, Stock, Restock, Reports),
-shop companion illustration, "Made for the corner of the world" card, and Back button.
+Sidebar navigation and mobile bottom bar.
+Ported from frontend/StockFlow/main.py StockFlow.sidebar() and .mobile_nav().
 """
 
-from pathlib import Path
-try:
-    import flet as ft
-except ImportError:
-    ft = None
+from __future__ import annotations
+
+import flet as ft
 
 from design.tokens import (
-    COLOR_SURFACE,
-    COLOR_BORDER,
     COLOR_BRAND_GREEN,
-    COLOR_BRAND_GREEN_DARK,
     COLOR_TEXT_MAIN,
-    COLOR_TEXT_MUTED,
-    CALLOUT_PEACH_BG,
-    CALLOUT_PEACH_BORDER,
+    PALE_GREEN,
 )
+from frontend.components.primitives import text, card, rounded_button
 
-NAV_ITEMS = [
-    ("home", "Home", "assets/af3ce.svg", "assets/229d1.svg"),
-    ("sell", "Sell", "assets/0b38a.svg", "assets/5a3bb.svg"),
-    ("stock", "Stock", "assets/bf69b.svg", "assets/5c8bf.svg"),
-    ("restock", "Restock", "assets/4022f.svg", "assets/90354.svg"),
-    ("reports", "Reports", "assets/b5de1.svg", "assets/3ba0c.svg"),
+# ── Navigation definition ─────────────────────────────────────────────
+NAV = [
+    ("home", "Home", ft.Icons.HOME_OUTLINED, ft.Icons.HOME_ROUNDED),
+    ("sell", "Sell", ft.Icons.SHOPPING_CART_OUTLINED, ft.Icons.SHOPPING_CART_ROUNDED),
+    ("stock", "Stock", ft.Icons.INVENTORY_2_OUTLINED, ft.Icons.INVENTORY_2_ROUNDED),
+    ("restock", "Restock", ft.Icons.LOCAL_SHIPPING_OUTLINED, ft.Icons.LOCAL_SHIPPING_ROUNDED),
+    ("reports", "Reports", ft.Icons.BAR_CHART_OUTLINED, ft.Icons.BAR_CHART_ROUNDED),
 ]
 
+GREEN = COLOR_BRAND_GREEN
+INK = COLOR_TEXT_MAIN
+MUTED = "#69756B"
+ASSETS = "assets"
 
-def build_sidebar(active_page: str, on_navigate, on_back_to_start):
-    """Builds the 268px desktop sidebar exactly like Figma."""
-    if ft is None:
-        return None
 
-    # Normalize active section
-    section = active_page
-    if active_page == "sell-states":
-        section = "sell"
-    elif active_page == "adjust":
-        section = "stock"
-    elif active_page == "history":
-        section = "reports"
+def active_section(route: str) -> str:
+    """Map sub-routes back to their parent nav section."""
+    return {
+        "sell_states": "sell",
+        "adjust": "stock",
+        "history": "reports",
+    }.get(route, route)
 
-    # Brand header
-    brand_logo = ft.Image(src="assets/18451.svg", width=42, height=42)
-    brand_title = ft.Column(
-        controls=[
-            ft.Text("StockFlow", size=17, weight=ft.FontWeight.W_600, color=COLOR_TEXT_MAIN),
-            ft.Text("POINT OF SALE", size=9, weight=ft.FontWeight.BOLD, color=COLOR_TEXT_MUTED),
-        ],
-        spacing=2,
-    )
-    brand_header = ft.Container(
-        content=ft.Row(controls=[brand_logo, brand_title], spacing=12),
-        on_click=lambda _: on_back_to_start(),
-    )
 
-    # Nav buttons
-    nav_buttons = []
-    for page_id, label, icon_path, active_icon_path in NAV_ITEMS:
-        is_active = (section == page_id)
-        icon_to_use = active_icon_path if is_active else icon_path
-        bg_col = COLOR_BRAND_GREEN if is_active else "transparent"
-        txt_col = "#FFFFFF" if is_active else "#4E7666"
+def build_sidebar(active_page: str, on_navigate, on_back_to_start) -> ft.Control:
+    """Build the full desktop sidebar with branding, nav items, and illustration."""
+    active = active_section(active_page)
 
-        btn = ft.Container(
-            content=ft.Row(
-                controls=[
-                    ft.Image(src=icon_to_use, width=22, height=22),
-                    ft.Text(label, size=16, weight=ft.FontWeight.W_500, color=txt_col),
-                ],
-                spacing=16,
-            ),
-            bgcolor=bg_col,
-            border_radius=28,
-            padding=ft.padding.symmetric(horizontal=20, vertical=14),
-            on_click=lambda _, pid=page_id: on_navigate(pid),
-        )
-        nav_buttons.append(btn)
-
-    nav_column = ft.Column(controls=nav_buttons, spacing=9)
-
-    # Shop companion illustration
-    companion_img = ft.Image(src="assets/45491.svg", width=180, height=120, fit=ft.ImageFit.CONTAIN)
-
-    # Made card
-    made_card = ft.Container(
-        content=ft.Column(
-            controls=[
-                ft.Image(src="assets/af3ce.svg", width=24, height=24),
-                ft.Text(
-                    "Made for the\ncorner of the world.",
-                    size=15,
-                    weight=ft.FontWeight.W_600,
-                    color=COLOR_BRAND_GREEN_DARK,
+    nav_controls = []
+    for route, label, icon, active_icon in NAV:
+        selected = active == route
+        nav_controls.append(
+            ft.ListTile(
+                leading=ft.Icon(
+                    active_icon if selected else icon,
+                    color="#FFFFFF" if selected else GREEN,
                 ),
-            ],
-            spacing=10,
-        ),
-        bgcolor=CALLOUT_PEACH_BG,
-        border=ft.border.all(1, CALLOUT_PEACH_BORDER),
-        border_radius=28,
-        padding=20,
-    )
+                title=text(
+                    label, 15,
+                    "#FFFFFF" if selected else "#4E7666",
+                    ft.FontWeight.W_500,
+                ),
+                bgcolor=GREEN if selected else None,
+                shape=ft.RoundedRectangleBorder(radius=26),
+                on_click=lambda _, r=route: on_navigate(r),
+            )
+        )
 
-    # Back button
-    back_btn = ft.Container(
-        content=ft.Text("Back", size=16, weight=ft.FontWeight.W_600, color=COLOR_BRAND_GREEN_DARK),
-        bgcolor="#FFFFFF",
-        border_radius=28,
-        padding=ft.padding.symmetric(vertical=14),
-        alignment=ft.alignment.center,
-        on_click=lambda _: on_back_to_start(),
-    )
-
-    return ft.Container(
-        content=ft.Column(
-            controls=[
-                brand_header,
-                ft.Container(height=30),
-                nav_column,
+    return card(
+        ft.Column(
+            [
+                ft.Row(
+                    [
+                        ft.Image(src=f"{ASSETS}/18451.svg", width=42, height=42),
+                        ft.Column(
+                            [
+                                text("StockFlow", 16, INK, ft.FontWeight.W_600),
+                                text("POINT OF SALE", 9, MUTED),
+                            ],
+                            spacing=2,
+                        ),
+                    ]
+                ),
+                ft.Container(height=42),
+                *nav_controls,
+                ft.Container(height=20),
+                ft.Image(src=f"{ASSETS}/45491.svg", height=132, fit=ft.ImageFit.CONTAIN),
+                ft.Container(
+                    ft.Column(
+                        [
+                            ft.Icon(ft.Icons.HOME_OUTLINED, color=GREEN),
+                            text("Made for the\ncorner of the world.", 14, GREEN),
+                        ]
+                    ),
+                    bgcolor="#FFE8D7",
+                    border=ft.border.all(1, "#F3C9AD"),
+                    border_radius=28,
+                    padding=20,
+                ),
                 ft.Container(expand=True),
-                ft.Container(content=companion_img, alignment=ft.alignment.center),
-                made_card,
-                ft.Container(height=12),
-                back_btn,
+                rounded_button("Back", lambda _: on_back_to_start(), width=190),
             ],
-            spacing=0,
+            spacing=8,
             expand=True,
         ),
-        width=268,
-        bgcolor=COLOR_SURFACE,
-        border=ft.border.all(1, COLOR_BORDER),
-        border_radius=44,
-        padding=ft.padding.all(22),
+        padding=18,
+        expand=True,
+    )
+
+
+def build_mobile_nav(active_page: str, on_navigate) -> ft.Control:
+    """Build the bottom navigation bar for compact/mobile layout."""
+    active = active_section(active_page)
+    return ft.NavigationBar(
+        selected_index=next(
+            (i for i, item in enumerate(NAV) if item[0] == active), 0
+        ),
+        bgcolor="#FFFEFA",
+        indicator_color=PALE_GREEN,
+        on_change=lambda e: on_navigate(NAV[e.control.selected_index][0]),
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=icon, selected_icon=active_icon, label=label
+            )
+            for _, label, icon, active_icon in NAV
+        ],
     )

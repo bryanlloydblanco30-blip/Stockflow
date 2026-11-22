@@ -1,62 +1,37 @@
 """
 frontend/components/barcode_input.py
-Scan row component matching Figma:
-[ Input field ] [ Scan (blue) ] [ Simulate (lavender) ]
+Barcode text field with Scan and Simulate buttons.
+All barcode entry goes through one function (Doc 4.3, D17).
 """
 
-try:
-    import flet as ft
-except ImportError:
-    ft = None
+from __future__ import annotations
 
-from design.tokens import (
-    BTN_BLUE_BG,
-    BTN_BLUE_TEXT,
-    BTN_LAVENDER_BG,
-    BTN_LAVENDER_TEXT,
-    COLOR_BORDER,
-    COLOR_SURFACE_ALT,
-    COLOR_TEXT_MAIN,
-)
+import flet as ft
+
+from design.tokens import PALE_BLUE, PALE_LAVENDER
+from frontend.components.primitives import rounded_button
 
 
-def build_barcode_input(input_ref=None, on_submit=None, on_scan=None, on_simulate=None):
-    """Builds the Figma scan row."""
-    if ft is None:
-        return None
-
-    text_field = ft.TextField(
-        ref=input_ref,
-        hint_text="Scan or type barcode",
-        border_color=COLOR_BORDER,
-        border_radius=11,
-        bgcolor=COLOR_SURFACE_ALT,
-        color=COLOR_TEXT_MAIN,
-        content_padding=ft.padding.symmetric(horizontal=17, vertical=14),
-        expand=True,
-        on_submit=on_submit,
-    )
-
-    scan_btn = ft.Container(
-        content=ft.Text("Scan", size=15, weight=ft.FontWeight.W_600, color=BTN_BLUE_TEXT),
-        bgcolor=BTN_BLUE_BG,
-        border_radius=24,
-        padding=ft.padding.symmetric(horizontal=24, vertical=14),
-        alignment=ft.alignment.center,
-        on_click=on_scan,
-    )
-
-    sim_btn = ft.Container(
-        content=ft.Text("Simulate", size=15, weight=ft.FontWeight.W_600, color=BTN_LAVENDER_TEXT),
-        bgcolor=BTN_LAVENDER_BG,
-        border_radius=24,
-        padding=ft.padding.symmetric(horizontal=24, vertical=14),
-        alignment=ft.alignment.center,
-        on_click=on_simulate,
-    )
-
-    return ft.Row(
-        controls=[text_field, scan_btn, sim_btn],
-        spacing=12,
-        alignment=ft.MainAxisAlignment.START,
+def barcode_input_row(
+    on_scan=None,
+    on_simulate=None,
+    on_submit=None,
+) -> ft.ResponsiveRow:
+    """Barcode entry row: text field + Scan + Simulate buttons."""
+    return ft.ResponsiveRow(
+        [
+            ft.TextField(
+                hint_text="Scan or type barcode",
+                on_submit=on_submit,
+                col={"sm": 12, "md": 7},
+            ),
+            ft.Container(
+                rounded_button("Scan", on_click=on_scan, bgcolor=PALE_BLUE),
+                col={"sm": 6, "md": 2},
+            ),
+            ft.Container(
+                rounded_button("Simulate", on_click=on_simulate, bgcolor=PALE_LAVENDER),
+                col={"sm": 6, "md": 3},
+            ),
+        ]
     )

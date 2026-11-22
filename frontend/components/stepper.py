@@ -1,45 +1,26 @@
 """
 frontend/components/stepper.py
-Quantity stepper control matching Figma: [ - ] count [ + ]
+Quantity stepper (minus / value / plus) used in the sell screen cart rows.
 """
 
-try:
-    import flet as ft
-except ImportError:
-    ft = None
+from __future__ import annotations
 
-from design.tokens import BTN_LAVENDER_BG, BTN_LAVENDER_TEXT, COLOR_TEXT_MAIN
+import flet as ft
+
+from frontend.components.primitives import text
 
 
-def build_stepper(value: int, on_decrement=None, on_increment=None):
-    """Builds the Figma pill stepper control."""
-    if ft is None:
-        return None
-
-    btn_dec = ft.Container(
-        content=ft.Text("−", size=18, weight=ft.FontWeight.BOLD, color=BTN_LAVENDER_TEXT),
-        bgcolor=BTN_LAVENDER_BG,
-        border_radius=18,
-        width=36,
-        height=36,
-        alignment=ft.alignment.center,
-        on_click=on_decrement,
-    )
-
-    count_txt = ft.Text(str(value), size=16, weight=ft.FontWeight.BOLD, color=COLOR_TEXT_MAIN)
-
-    btn_inc = ft.Container(
-        content=ft.Text("+", size=18, weight=ft.FontWeight.BOLD, color=BTN_LAVENDER_TEXT),
-        bgcolor=BTN_LAVENDER_BG,
-        border_radius=18,
-        width=36,
-        height=36,
-        alignment=ft.alignment.center,
-        on_click=on_increment,
-    )
-
+def quantity_stepper(
+    value: int,
+    on_minus=None,
+    on_plus=None,
+) -> ft.Row:
+    """A compact −/value/+ row."""
     return ft.Row(
-        controls=[btn_dec, count_txt, btn_inc],
-        spacing=12,
-        alignment=ft.MainAxisAlignment.START,
+        [
+            ft.IconButton(ft.Icons.REMOVE, on_click=on_minus),
+            text(str(value)),
+            ft.IconButton(ft.Icons.ADD, on_click=on_plus),
+        ],
+        spacing=0,
     )

@@ -1,138 +1,154 @@
 """
 frontend/screens/reports_screen.py
-Reports screen matching the Figma ReportsPage:
-- Period chips: Day, Week, Month, Custom
-- 4 StatCards: Revenue, Gross profit, Margin, COGS
-- Sales and profit trend chart
-- 4 Report link buttons
+Financial reports: period selector, stat cards, bar chart, drill-down links.
+Ported from frontend/StockFlow/main.py StockFlow.reports().
 """
 
-try:
-    import flet as ft
-except ImportError:
-    ft = None
+from __future__ import annotations
+
+import flet as ft
 
 from design.tokens import (
-    BTN_BLUE_BG,
-    BTN_BLUE_TEXT,
-    BTN_LAVENDER_BG,
-    BTN_LAVENDER_TEXT,
-    COLOR_BORDER,
-    COLOR_SURFACE_ALT,
+    COLOR_BRAND_GREEN,
+    COLOR_TEXT_MAIN,
     COLOR_TEXT_MUTED,
+    PALE_BLUE,
+    PALE_GREEN,
+    PALE_YELLOW,
+    PALE_LAVENDER,
+    PALE_ROSE,
 )
-from frontend.components.summary_card import build_summary_card
+from frontend.components.primitives import (
+    text,
+    rounded_button,
+    card,
+    stat_card,
+)
+
+GREEN = COLOR_BRAND_GREEN
+INK = COLOR_TEXT_MAIN
+MUTED = COLOR_TEXT_MUTED
 
 
-def render(on_drill_down=None):
-    """Renders the Figma Reports analytics screen."""
-    if ft is None:
-        return None
+def render(
+    on_drill_down=None,
+    report_period: str = "Week",
+    on_period_change=None,
+    compact: bool = False,
+) -> ft.Control:
+    """Render the reports / analytics screen."""
 
-    # Period chips
-    period_chips = ft.Row(
-        controls=[
-            ft.Container(content=ft.Text("Day", size=14, color=BTN_LAVENDER_TEXT), bgcolor=BTN_LAVENDER_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-            ft.Container(content=ft.Text("Week", size=14, weight=ft.FontWeight.BOLD, color=BTN_BLUE_TEXT), bgcolor=BTN_BLUE_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-            ft.Container(content=ft.Text("Month", size=14, color=BTN_LAVENDER_TEXT), bgcolor=BTN_LAVENDER_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
-            ft.Container(content=ft.Text("Custom", size=14, color=BTN_LAVENDER_TEXT), bgcolor=BTN_LAVENDER_BG, border_radius=24, padding=ft.padding.symmetric(horizontal=24, vertical=12)),
+    periods = ft.Row(
+        [
+            rounded_button(
+                option,
+                lambda _, v=option: on_period_change(v) if on_period_change else None,
+                PALE_BLUE if report_period == option else PALE_LAVENDER,
+            )
+            for option in ["Day", "Week", "Month", "Custom"]
         ],
-        spacing=12,
+        wrap=True,
         alignment=ft.MainAxisAlignment.END,
     )
 
-    # 4 StatCards
-    stat_cards = ft.Row(
-        controls=[
-            build_summary_card("Revenue", "₱31,400.00", tone="yellow"),
-            build_summary_card("Gross profit", "₱8,250.00", tone="green"),
-            build_summary_card("Margin", "26.3%", tone="yellow"),
-            build_summary_card("COGS", "₱23,150.00", tone="rose"),
+    stats = ft.ResponsiveRow(
+        [
+            ft.Container(
+                stat_card("Revenue", "₱31,400.00"), col={"sm": 6, "lg": 3}
+            ),
+            ft.Container(
+                stat_card("Gross profit", "₱8,250.00", PALE_GREEN, "#1D6538"),
+                col={"sm": 6, "lg": 3},
+            ),
+            ft.Container(
+                stat_card("Margin", "26.3%", PALE_YELLOW),
+                col={"sm": 6, "lg": 3},
+            ),
+            ft.Container(
+                stat_card("COGS", "₱23,150.00", PALE_ROSE),
+                col={"sm": 6, "lg": 3},
+            ),
         ],
-        spacing=18,
+        spacing=16,
+        run_spacing=16,
     )
 
-    # Bar chart matching the Figma 7 daily bars
-    bar_data = [
-        ("Mon", 44, "#D9EACD"),
-        ("Tue", 62, "#FFD7BF"),
-        ("Wed", 36, "#FFF0C7"),
-        ("Thu", 72, "#E7DAF4"),
-        ("Fri", 56, "#D9EACD"),
-        ("Sat", 88, "#246448"),
-        ("Sun", 66, "#FFD7BF"),
+    values = [44, 62, 36, 72, 56, 88, 66]
+    colors = [
+        "#D9EACD", "#FFD7BF", "#FFF0C7", "#E7DAF4",
+        "#D9EACD", GREEN, "#FFD7BF",
     ]
-
-    bar_slots = []
-    for day, height_pct, bar_color in bar_data:
-        slot = ft.Column(
-            controls=[
-                ft.Container(
-                    bgcolor=bar_color,
-                    border_radius=ft.border_radius.only(top_left=18, top_right=18),
-                    height=height_pct * 2,
-                    width=48,
-                ),
-                ft.Text(day, size=13, color=COLOR_TEXT_MUTED),
-            ],
-            alignment=ft.MainAxisAlignment.END,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=10,
-        )
-        bar_slots.append(slot)
-
-    chart_panel = ft.Container(
-        content=ft.Column(
-            controls=[
-                ft.Text("Sales and profit trend", size=21, weight=ft.FontWeight.W_600),
-                ft.Container(height=16),
-                ft.Container(
-                    content=ft.Row(controls=bar_slots, alignment=ft.MainAxisAlignment.SPACE_AROUND, expand=True),
-                    height=240,
-                    alignment=ft.alignment.bottom_center,
-                ),
-            ],
-            spacing=0,
+    chart = ft.BarChart(
+        bar_groups=[
+            ft.BarChartGroup(
+                x=i,
+                bar_rods=[
+                    ft.BarChartRod(
+                        from_y=0,
+                        to_y=value,
+                        width=38,
+                        color=colors[i],
+                        border_radius=ft.border_radius.only(
+                            top_left=12, top_right=12
+                        ),
+                    )
+                ],
+            )
+            for i, value in enumerate(values)
+        ],
+        bottom_axis=ft.ChartAxis(
+            labels=[
+                ft.ChartAxisLabel(value=i, label=text(day, 12, MUTED))
+                for i, day in enumerate(
+                    ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                )
+            ]
         ),
-        bgcolor=COLOR_SURFACE_ALT,
-        border=ft.border.all(1, COLOR_BORDER),
-        border_radius=30,
-        padding=28,
+        left_axis=ft.ChartAxis(labels_size=0),
+        max_y=100,
+        height=280,
+        interactive=True,
     )
 
-    # Report link buttons
-    links = [
-        "Best and worst sellers ›",
-        "Profit per item ›",
-        "Spoilage loss ›",
-        "Inventory value ›",
-    ]
-    link_buttons = [
-        ft.Container(
-            content=ft.Text(lbl, size=14, weight=ft.FontWeight.W_500, color=BTN_LAVENDER_TEXT),
-            bgcolor=BTN_LAVENDER_BG,
-            border_radius=24,
-            padding=ft.padding.symmetric(horizontal=20, vertical=14),
-            alignment=ft.alignment.center,
-            expand=True,
-            on_click=lambda _, l=lbl: on_drill_down(l) if on_drill_down else None,
-        )
-        for lbl in links
-    ]
-
-    report_links_row = ft.Row(controls=link_buttons, spacing=16)
+    links = ft.ResponsiveRow(
+        [
+            ft.Container(
+                rounded_button(
+                    label,
+                    lambda _, l=label: on_drill_down(l) if on_drill_down else None,
+                    PALE_LAVENDER,
+                ),
+                col={"sm": 6, "lg": 3},
+            )
+            for label in [
+                "Best and worst sellers ›",
+                "Profit per item ›",
+                "Spoilage loss ›",
+                "Inventory value ›",
+            ]
+        ],
+        spacing=14,
+        run_spacing=14,
+    )
 
     return ft.Column(
-        controls=[
-            period_chips,
-            ft.Container(height=16),
-            stat_cards,
-            ft.Container(height=24),
-            chart_panel,
-            ft.Container(height=24),
-            report_links_row,
+        [
+            periods,
+            stats,
+            card(
+                ft.Column(
+                    [
+                        text(
+                            "Sales and profit trend",
+                            20,
+                            INK,
+                            ft.FontWeight.W_600,
+                        ),
+                        chart,
+                    ]
+                )
+            ),
+            links,
         ],
-        spacing=0,
-        expand=True,
-        scroll=ft.ScrollMode.AUTO,
+        spacing=22,
     )

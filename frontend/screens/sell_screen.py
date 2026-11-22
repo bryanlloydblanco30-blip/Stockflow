@@ -1,170 +1,130 @@
 """
 frontend/screens/sell_screen.py
-Sell screen matching the Figma SellPage.
-Split pane:
-- Left: Barcode scan row + Cart table with steppers, unit price, subtotal, and remove.
-- Right: Sticky summary card (items, subtotal, tax 0%, total, Checkout button) + message card.
+Point-of-sale screen: barcode input, cart list, summary panel.
+Ported from frontend/StockFlow/main.py StockFlow.sell().
 """
 
-try:
-    import flet as ft
-except ImportError:
-    ft = None
+from __future__ import annotations
+
+import flet as ft
 
 from design.tokens import (
-    BTN_BLUE_BG,
-    BTN_BLUE_TEXT,
-    BTN_LAVENDER_BG,
-    BTN_LAVENDER_TEXT,
-    COLOR_BORDER,
-    COLOR_SURFACE_ALT,
+    COLOR_BRAND_GREEN,
     COLOR_TEXT_MAIN,
     COLOR_TEXT_MUTED,
-    CALLOUT_GREEN_BG,
-    CALLOUT_GREEN_BORDER,
-    COLOR_BRAND_GREEN_DARK,
+    PALE_BLUE,
+    PALE_GREEN,
+    PALE_LAVENDER,
 )
-from frontend.components.barcode_input import build_barcode_input
-from frontend.components.stepper import build_stepper
+from frontend.components.primitives import (
+    text,
+    rounded_button,
+    card,
+    summary_line,
+)
+from frontend.components.barcode_input import barcode_input_row
+
+GREEN = COLOR_BRAND_GREEN
+INK = COLOR_TEXT_MAIN
+MUTED = COLOR_TEXT_MUTED
 
 
-def render(on_checkout_click=None):
-    """Renders the Figma Sell POS split-view layout."""
-    if ft is None:
-        return None
+# ── Sample cart data (will be replaced by backend services) ───────────
+_SAMPLE_CART = [
+    {"name": "Pandesal pack", "qty": 1, "price": 45},
+    {"name": "Sardines 155g", "qty": 2, "price": 28},
+    {"name": "Bottled water 500ml", "qty": 1, "price": 25},
+    {"name": "Notebook", "qty": 1, "price": 58},
+]
 
-    # Sample cart data from Figma mockup
-    cart_items = [
-        {"name": "Pandesal pack", "qty": 1, "price": 45.00},
-        {"name": "Sardines 155g", "qty": 2, "price": 28.00},
-        {"name": "Bottled water 500ml", "qty": 1, "price": 25.00},
-        {"name": "Notebook", "qty": 1, "price": 58.00},
-    ]
 
-    total_amount = sum(item["qty"] * item["price"] for item in cart_items)
-    total_items = sum(item["qty"] for item in cart_items)
+def render(compact: bool = False, cart=None) -> ft.Control:
+    """Render the sell / POS screen."""
+    if cart is None:
+        cart = _SAMPLE_CART
 
-    # Scan row
-    scan_row = build_barcode_input()
+    total = sum(item["qty"] * item["price"] for item in cart)
 
-    # Cart header row
-    cart_header = ft.Container(
-        content=ft.Row(
-            controls=[
-                ft.Text("Item", size=13, weight=ft.FontWeight.W_500, color=COLOR_TEXT_MUTED, expand=3),
-                ft.Text("Qty", size=13, weight=ft.FontWeight.W_500, color=COLOR_TEXT_MUTED, expand=2),
-                ft.Text("Unit price", size=13, weight=ft.FontWeight.W_500, color=COLOR_TEXT_MUTED, expand=2),
-                ft.Text("Line total", size=13, weight=ft.FontWeight.W_500, color=COLOR_TEXT_MUTED, expand=2),
-                ft.Container(width=80),
-            ],
-        ),
-        padding=ft.padding.symmetric(vertical=12),
-        border=ft.border.only(bottom=ft.BorderSide(1, "#EBE8E1")),
-    )
-
-    # Cart rows
-    cart_row_controls = []
-    for item in cart_items:
-        line_subtotal = item["qty"] * item["price"]
-
-        remove_btn = ft.Container(
-            content=ft.Text("Remove", size=13, weight=ft.FontWeight.W_500, color=BTN_LAVENDER_TEXT),
-            bgcolor=BTN_LAVENDER_BG,
-            border_radius=18,
-            padding=ft.padding.symmetric(horizontal=16, vertical=8),
-        )
-
-        row_ctrl = ft.Container(
-            content=ft.Row(
-                controls=[
-                    ft.Text(item["name"], size=15, weight=ft.FontWeight.W_500, color=COLOR_TEXT_MAIN, expand=3),
-                    ft.Container(content=build_stepper(item["qty"]), expand=2),
-                    ft.Text(f"₱{item['price']:.2f}", size=15, color=COLOR_TEXT_MAIN, expand=2),
-                    ft.Text(f"₱{line_subtotal:.2f}", size=15, weight=ft.FontWeight.BOLD, color=COLOR_TEXT_MAIN, expand=2),
-                    ft.Container(content=remove_btn, width=80),
+    items = []
+    for i, item in enumerate(cart):
+        items.append(
+            ft.Row(
+                [
+                    ft.Container(text(item["name"]), expand=2),
+                    ft.Row(
+                        [
+                            ft.IconButton(ft.Icons.REMOVE),
+                            text(str(item["qty"])),
+                            ft.IconButton(ft.Icons.ADD),
+                        ],
+                        spacing=0,
+                    ),
+                    ft.Container(text(f"₱{item['price']:.2f}"), expand=1),
+                    ft.Container(
+                        text(f"₱{item['price'] * item['qty']:.2f}"), expand=1
+                    ),
+                    rounded_button("Remove", bgcolor=PALE_LAVENDER),
                 ],
-                vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            ),
-            padding=ft.padding.symmetric(vertical=16),
-            border=ft.border.only(bottom=ft.BorderSide(1, "#EBE8E1")),
+                spacing=8,
+            )
         )
-        cart_row_controls.append(row_ctrl)
+        items.append(ft.Divider(color="#EBE8E1", height=1))
 
-    cart_panel = ft.Container(
-        content=ft.Column(
-            controls=[
-                scan_row,
-                ft.Container(height=16),
-                cart_header,
-                *cart_row_controls,
+    cart_card = card(
+        ft.Column(
+            [
+                barcode_input_row(),
+                *items,
             ],
-            spacing=0,
+            spacing=14,
+            scroll=ft.ScrollMode.AUTO,
         ),
-        bgcolor=COLOR_SURFACE_ALT,
-        border=ft.border.all(1, COLOR_BORDER),
-        border_radius=30,
-        padding=24,
-        expand=2,
-    )
-
-    # Right summary panel
-    summary_panel = ft.Container(
-        content=ft.Column(
-            controls=[
-                ft.Text("Summary", size=18, weight=ft.FontWeight.BOLD, color="#5D6475"),
-                ft.Container(height=16),
-                ft.Row([ft.Text("Items", size=15, color=COLOR_TEXT_MUTED), ft.Text(str(total_items), size=16, weight=ft.FontWeight.BOLD)], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                ft.Row([ft.Text("Subtotal", size=15, color=COLOR_TEXT_MUTED), ft.Text(f"₱{total_amount:.2f}", size=16, weight=ft.FontWeight.BOLD)], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                ft.Row([ft.Text("Tax 0%", size=15, color=COLOR_TEXT_MUTED), ft.Text("₱0.00", size=16, weight=ft.FontWeight.BOLD)], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                ft.Divider(color="#E8E4DD", thickness=1, height=32),
-                ft.Row(
-                    controls=[
-                        ft.Text("Total", size=18, weight=ft.FontWeight.BOLD),
-                        ft.Text(f"₱{total_amount:.2f}", size=31, weight=ft.FontWeight.BOLD, color=COLOR_TEXT_MAIN),
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                ),
-                ft.Container(height=24),
-                ft.Container(
-                    content=ft.Text("Checkout (Enter)", size=18, weight=ft.FontWeight.BOLD, color=BTN_BLUE_TEXT),
-                    bgcolor=BTN_BLUE_BG,
-                    border_radius=24,
-                    padding=ft.padding.symmetric(vertical=16),
-                    alignment=ft.alignment.center,
-                    on_click=lambda _: on_checkout_click() if on_checkout_click else None,
-                ),
-            ],
-            spacing=8,
-        ),
-        bgcolor=COLOR_SURFACE_ALT,
-        border=ft.border.all(1, COLOR_BORDER),
-        border_radius=30,
-        padding=28,
-    )
-
-    message_card = ft.Container(
-        content=ft.Column(
-            controls=[
-                ft.Text("A smooth checkout,\na happy customer.", size=22, color=COLOR_BRAND_GREEN_DARK),
-                ft.Text("Scan items, review, and you're ready.", size=15, color=COLOR_TEXT_MUTED),
-            ],
-            spacing=8,
-        ),
-        bgcolor=CALLOUT_GREEN_BG,
-        border=ft.border.all(1, CALLOUT_GREEN_BORDER),
-        border_radius=28,
-        padding=24,
-    )
-
-    checkout_column = ft.Column(
-        controls=[summary_panel, message_card],
-        spacing=24,
-        expand=1,
-    )
-
-    return ft.Row(
-        controls=[cart_panel, checkout_column],
-        spacing=24,
-        vertical_alignment=ft.CrossAxisAlignment.START,
         expand=True,
+    )
+
+    summary = card(
+        ft.Column(
+            [
+                text("Summary", 14, MUTED, ft.FontWeight.W_600),
+                summary_line("Items", str(sum(i["qty"] for i in cart))),
+                summary_line("Subtotal", f"₱{total:.2f}"),
+                summary_line("Tax 0%", "₱0.00"),
+                ft.Divider(),
+                summary_line("Total", f"₱{total:.2f}", True),
+                rounded_button("Checkout (Enter)", bgcolor=PALE_BLUE, width=300),
+            ],
+            spacing=14,
+        )
+    )
+
+    side = ft.Column(
+        [
+            summary,
+            card(
+                ft.Column(
+                    [
+                        text(
+                            "A smooth checkout,\na happy customer.",
+                            20,
+                            GREEN,
+                        ),
+                        text(
+                            "Scan items, review, and you're ready.",
+                            13,
+                            MUTED,
+                        ),
+                    ]
+                ),
+                bgcolor=PALE_GREEN,
+            ),
+        ],
+        width=None if compact else 330,
+    )
+
+    if compact:
+        return ft.Column([cart_card, side], spacing=18)
+    return ft.Row(
+        [cart_card, side],
+        spacing=22,
+        vertical_alignment=ft.CrossAxisAlignment.START,
     )

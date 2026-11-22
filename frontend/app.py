@@ -1,19 +1,19 @@
 """
 frontend/app.py
 StockFlow desktop master application container.
-Coordinates sidebar navigation rail, top header with More menu, and dynamic page routing.
+Class-based architecture ported from frontend/StockFlow/main.py.
+Coordinates sidebar navigation, top header, responsive layout, and dynamic page routing.
 """
 
-import sys
-from pathlib import Path
+from __future__ import annotations
 
-try:
-    import flet as ft
-except ImportError:
-    ft = None
+import flet as ft
 
-from design.tokens import COLOR_BG
-from frontend.components.nav_rail import build_sidebar
+from design.tokens import (
+    COLOR_BG,
+    COLOR_BRAND_GREEN,
+)
+from frontend.components.nav_rail import build_sidebar, build_mobile_nav
 from frontend.components.dialogs import build_page_header
 
 # Screens
@@ -29,93 +29,187 @@ from frontend.screens import (
     history_screen,
 )
 
+GREEN = COLOR_BRAND_GREEN
 
-def main(page):
-    """Main desktop application entrypoint for Flet."""
-    if ft is None:
-        print("[Error] Flet is not installed.")
-        return
 
-    page.title = "StockFlow Desktop (Point of Sale)"
-    page.bgcolor = COLOR_BG
-    page.window.min_width = 1100
-    page.window.min_height = 760
-    page.padding = 0
+class StockFlowApp:
+    """Main application controller — manages routing, state, and layout."""
 
-    current_page = "start"
-    workspace_container = ft.Container(expand=True)
+    def __init__(self, page: ft.Page):
+        self.page = page
+        self.route = "start"
 
-    def navigate_to(page_id: str):
-        nonlocal current_page
-        current_page = page_id
-        refresh_view()
+        # Screen-level state
+        self.stock_filter = "All"
+        self.stock_query = ""
+        self.report_period = "Week"
+        self.history_filter = "All"
 
-    def get_screen_content(page_id: str):
-        if page_id == "home":
-            return home_screen.render(on_navigate=navigate_to)
-        elif page_id == "sell":
-            return sell_screen.render()
-        elif page_id == "stock":
-            return stock_list_screen.render(on_product_click=lambda: navigate_to("adjust"))
-        elif page_id == "restock":
-            return restock_screen.render()
-        elif page_id == "reports":
-            return reports_screen.render(on_drill_down=lambda _: navigate_to("history"))
-        elif page_id == "sell-states":
-            return sell_states_screen.render()
-        elif page_id == "adjust":
-            return adjust_screen.render(on_cancel=lambda: navigate_to("stock"))
-        elif page_id == "history":
-            return history_screen.render()
-        return home_screen.render(on_navigate=navigate_to)
+        # Page configuration
+        page.title = "StockFlow"
+        page.bgcolor = COLOR_BG
+        page.padding = 0
+        page.theme_mode = ft.ThemeMode.LIGHT
+        page.theme = ft.Theme(
+            color_scheme_seed=GREEN,
+            use_material3=True,
+            font_family="Inter",
+        )
+        page.fonts = {
+            "Inter": "https://static.figma.com/font/Inter_1",
+            "SF Pro Rounded": "https://static.figma.com/font/SF-Pro-Rounded-Bold_1",
+        }
+        page.on_resized = self._on_resize
 
-    def refresh_view():
-        page.controls.clear()
+        self.render()
 
-        if current_page == "start":
-            page.add(start_screen.render(on_select_page=navigate_to))
+    # ── Navigation ────────────────────────────────────────────────────
+
+    def go(self, route: str):
+        """Navigate to a route."""
+        self.route = route
+        self.render()
+
+    def _on_resize(self, _):
+        self.render()
+
+    @property
+    def compact(self) -> bool:
+        """True when the window is narrower than 920px (mobile-like)."""
+        return bool(self.page.width and self.page.width < 920)
+
+    # ── Rendering ─────────────────────────────────────────────────────
+
+    def render(self):
+        """Clear and rebuild the entire page."""
+        self.page.controls.clear()
+
+        if self.route == "start":
+            self.page.add(
+                start_screen.render(
+                    on_select_page=lambda r: self.go(r),
+                    compact=self.compact,
+                )
+            )
         else:
-            sidebar = build_sidebar(
-                active_page=current_page,
-                on_navigate=navigate_to,
-                on_back_to_start=lambda: navigate_to("start"),
-            )
+            self.page.add(self._app_shell())
 
-            header = build_page_header(
-                page_id=current_page,
-                on_navigate=navigate_to,
-            )
+        self.page.update()
 
-            screen_body = get_screen_content(current_page)
+    def _app_shell(self) -> ft.Control:
+        """The main app layout: sidebar + header + current screen."""
+        header = build_page_header(
+            page_id=self.route,
+            on_navigate=lambda r: self.go(r),
+            compact=self.compact,
+        )
 
-            workspace = ft.Container(
-                content=ft.Column(
-                    controls=[
-                        header,
-                        ft.Container(height=24),
-                        ft.Container(content=screen_body, expand=True),
-                    ],
-                    spacing=0,
-                    expand=True,
-                ),
-                padding=ft.padding.only(top=14, bottom=40, right=24),
+        screen_body = self._current_view()
+
+        content = ft.Column(
+            [header, screen_body],
+            spacing=22,
+            expand=True,
+            scroll=ft.ScrollMode.AUTO,
+        )
+
+        if self.compact:
+            return ft.Column(
+                [
+                    build_mobile_nav(self.route, lambda r: self.go(r)),
+                    ft.Container(content, padding=20, expand=True),
+                ],
+                spacing=0,
                 expand=True,
             )
 
-            layout = ft.Container(
-                content=ft.Row(
-                    controls=[sidebar, ft.Container(width=24), workspace],
-                    spacing=0,
-                    vertical_alignment=ft.CrossAxisAlignment.START,
+        sidebar = build_sidebar(
+            active_page=self.route,
+            on_navigate=lambda r: self.go(r),
+            on_back_to_start=lambda: self.go("start"),
+        )
+
+        return ft.Row(
+            [
+                ft.Container(sidebar, width=268, padding=24),
+                ft.Container(
+                    content,
                     expand=True,
+                    padding=ft.padding.only(top=38, right=44, bottom=44),
                 ),
-                bgcolor=COLOR_BG,
-                padding=24,
-                expand=True,
+            ],
+            spacing=34,
+            expand=True,
+            vertical_alignment=ft.CrossAxisAlignment.START,
+        )
+
+    def _current_view(self) -> ft.Control:
+        """Return the screen content for the current route."""
+        c = self.compact
+
+        if self.route == "home":
+            return home_screen.render(
+                on_navigate=lambda r: self.go(r),
+                compact=c,
             )
+        elif self.route == "sell":
+            return sell_screen.render(compact=c)
+        elif self.route == "stock":
+            return stock_list_screen.render(
+                on_product_click=lambda: self.go("adjust"),
+                stock_filter=self.stock_filter,
+                stock_query=self.stock_query,
+                on_filter_change=lambda v: self._set_stock_filter(v),
+                on_query_change=lambda e: self._set_stock_query(e.control.value),
+                compact=c,
+            )
+        elif self.route == "restock":
+            return restock_screen.render(compact=c)
+        elif self.route == "reports":
+            return reports_screen.render(
+                on_drill_down=lambda _: self.go("history"),
+                report_period=self.report_period,
+                on_period_change=lambda v: self._set_report_period(v),
+                compact=c,
+            )
+        elif self.route == "sell_states":
+            return sell_states_screen.render(compact=c)
+        elif self.route == "adjust":
+            return adjust_screen.render(
+                on_cancel=lambda: self.go("stock"),
+                compact=c,
+            )
+        elif self.route == "history":
+            return history_screen.render(
+                history_filter=self.history_filter,
+                on_filter_change=lambda v: self._set_history_filter(v),
+                compact=c,
+            )
+        # Fallback
+        return home_screen.render(
+            on_navigate=lambda r: self.go(r),
+            compact=c,
+        )
 
-            page.add(layout)
+    # ── State helpers ─────────────────────────────────────────────────
 
-        page.update()
+    def _set_stock_filter(self, value: str):
+        self.stock_filter = value
+        self.render()
 
-    refresh_view()
+    def _set_stock_query(self, value: str):
+        self.stock_query = value
+        self.render()
+
+    def _set_report_period(self, value: str):
+        self.report_period = value
+        self.render()
+
+    def _set_history_filter(self, value: str):
+        self.history_filter = value
+        self.render()
+
+
+def main(page: ft.Page):
+    """Flet app entry point."""
+    StockFlowApp(page)
