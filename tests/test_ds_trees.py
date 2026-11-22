@@ -148,9 +148,81 @@ class TestBST(unittest.TestCase):
 
 
 class TestTrie(unittest.TestCase):
-    def test_placeholder(self):
-        trie = Trie()
-        self.assertIsNotNone(trie)
+    def setUp(self):
+        self.trie = Trie()
+
+    def test_empty_trie(self):
+        self.assertIsNone(self.trie.find_prefix("pan"))
+        self.assertEqual(self.trie.list_under_prefix("pan"), [])
+        self.assertFalse(self.trie.delete("pan"))
+
+    def test_single_word(self):
+        self.trie.insert("Pandesal", {"id": "P1", "name": "Pandesal"})
+        # Case insensitive prefix find
+        node = self.trie.find_prefix("pan")
+        self.assertIsNotNone(node)
+
+        results = self.trie.list_under_prefix("PAN")
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["name"], "Pandesal")
+
+        # Delete
+        self.assertTrue(self.trie.delete("pandesal"))
+        self.assertIsNone(self.trie.find_prefix("pandesal"))
+        self.assertEqual(self.trie.list_under_prefix("pan"), [])
+
+    def test_prefix_listing_limit_8(self):
+        # Insert 12 items starting with 'choc'
+        for i in range(12):
+            self.trie.insert(f"chocolate_{i:02d}", f"val_{i}")
+
+        # Default limit is 8
+        matches = self.trie.list_under_prefix("choc")
+        self.assertEqual(len(matches), 8)
+
+        # Custom limit
+        all_matches = self.trie.list_under_prefix("choc", limit=15)
+        self.assertEqual(len(all_matches), 12)
+
+    def test_prefix_overlap_and_deletion(self):
+        self.trie.insert("pan", "short")
+        self.trie.insert("pandesal", "long")
+        self.trie.insert("pancake", "other")
+
+        # Delete "pan" - "pandesal" and "pancake" must remain
+        self.assertTrue(self.trie.delete("pan"))
+        self.assertFalse(self.trie.delete("pan"))  # already deleted
+
+        matches = self.trie.list_under_prefix("pan")
+        self.assertEqual(set(matches), {"long", "other"})
+
+        # Delete "pandesal"
+        self.assertTrue(self.trie.delete("pandesal"))
+        matches_after = self.trie.list_under_prefix("pan")
+        self.assertEqual(matches_after, ["other"])
+
+    def test_randomized_trie_against_oracle(self):
+        words = [
+            "apple", "apricot", "avocado", "banana", "blackberry",
+            "blueberry", "bread", "butter", "cheese", "cherry",
+            "chocolate", "coffee", "cookies", "cream", "croissant"
+        ]
+        for w in words:
+            self.trie.insert(w, w)
+
+        # Check prefix matches for 'b'
+        b_oracle = [w for w in words if w.startswith("b")]
+        b_trie = self.trie.list_under_prefix("B", limit=10)
+        self.assertEqual(set(b_trie), set(b_oracle))
+
+        # Check prefix matches for 'ch'
+        ch_oracle = [w for w in words if w.startswith("ch")]
+        ch_trie = self.trie.list_under_prefix("CH", limit=10)
+        self.assertEqual(set(ch_trie), set(ch_oracle))
+
+        # Delete 'cheese'
+        self.assertTrue(self.trie.delete("cheese"))
+        self.assertNotIn("cheese", self.trie.list_under_prefix("ch"))
 
 
 if __name__ == "__main__":

@@ -85,3 +85,16 @@
   - Hard rule: zero `dict` lookup shortcuts in `ds/`.
 - **Anything Left Open**:
   - Proceed to Task 1.6: Trie implementation.
+
+## Task 1.6: Trie Implementation
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/ds/trie.py`: Implemented strictly from scratch prefix Trie (`TrieNode`, `insert`, `find_prefix`, `list_under_prefix`, `delete`) with lowercase normalization, depth-first collection with configurable limit (default 8), and recursive node pruning on deletion. Node children stored in a list of `(char, TrieNode)` pairs with zero dict shortcuts.
+  - `tests/test_ds_trees.py`: Added 5 unit tests covering empty trie, single word insert/find/delete, case insensitivity, prefix listing limit (8), overlapping prefixes deletion, and randomized prefix validation against Python string filtering.
+- **Tests Added & Result**:
+  - 5 new unit tests in `tests/test_ds_trees.py`. Full test suite: 52/52 passed in 0.52s.
+- **Rules / Edge Cases Covered**:
+  - Doc 12.1 ADT testing requirements (empty, single, prefix match, limit 8, deletion, random oracle).
+  - Hard rule: zero `dict` shortcuts for trie lookup.
+- **Anything Left Open**:
+  - Proceed to Task 1.7: Prefix Sums implementation.
