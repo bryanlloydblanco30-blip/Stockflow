@@ -72,3 +72,16 @@
   - Hard rule: zero `heapq` in `ds/`.
 - **Anything Left Open**:
   - Proceed to Task 1.5: BST implementation.
+
+## Task 1.5: Binary Search Tree (BST) Implementation
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/ds/bst.py`: Implemented from-scratch Binary Search Tree (`BSTNode`, `insert`, `find`, `delete`, `in_order`, `min`, `max`, `size`, `is_empty`) with duplicate key rejection and all 3 deletion cases (leaf, single child left/right, and two children with in-order successor replacement). Zero dict shortcuts used for lookup.
+  - `tests/test_ds_trees.py`: Added 10 unit test cases covering empty BST, single node lifecycle, duplicate key rejection (ValueError), min/max, in-order ordering, all deletion cases, and 200-node randomized insertion/deletion verified against Python dict oracle.
+- **Tests Added & Result**:
+  - 10 new unit tests in `tests/test_ds_trees.py`. Full test suite: 48/48 passed in 0.47s.
+- **Rules / Edge Cases Covered**:
+  - Doc 12.1 ADT testing requirements (empty, single, duplicates, leaf/1-child/2-child deletion, random input checked against trusted result).
+  - Hard rule: zero `dict` lookup shortcuts in `ds/`.
+- **Anything Left Open**:
+  - Proceed to Task 1.6: Trie implementation.
