@@ -33,3 +33,16 @@
   - Pure Python, zero `heapq`/`dict`/`sorted` used in `ds/`.
 - **Anything Left Open**:
   - Proceed to Task 1.2: Stack implementation.
+
+## Task 1.2: Stack Implementation
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/ds/stack.py`: Implemented node-based LIFO stack (`StackNode`, `push`, `pop`, `peek`, `size`, `is_empty`) with zero built-in list shortcuts.
+  - `tests/test_ds_stack.py`: Added 5 unit test cases covering empty stack errors (IndexError on pop/peek), single item lifecycle, strict LIFO order across multiple items, duplicates handling, and 500-step randomized push/pop sequence verified against trusted Python list.
+- **Tests Added & Result**:
+  - 5 new unit tests in `tests/test_ds_stack.py`. Full test suite: 28/28 passed in 0.45s.
+- **Rules / Edge Cases Covered**:
+  - Doc 12.1 ADT testing requirements (empty, single, duplicates, random against oracle).
+  - Pure node-based implementation with zero `heapq`/`dict`/`sorted`.
+- **Anything Left Open**:
+  - Proceed to Task 1.3: Min-heap implementation.
