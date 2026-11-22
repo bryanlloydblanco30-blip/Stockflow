@@ -59,3 +59,16 @@
   - Hard rule: zero `heapq` in `ds/`.
 - **Anything Left Open**:
   - Proceed to Task 1.4: Max-Heap implementation.
+
+## Task 1.4: Max-Heap Implementation
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/ds/max_heap.py`: Implemented strictly from scratch Max-Heap (`_MaxHeapEntry`, `insert`, `peek_max`, `extract_max`, `size`, `is_empty`) with $O(\log n)$ sift up/down and $O(1)$ peek for restock urgency ranking. Zero `heapq` imported.
+  - `tests/test_ds_heaps.py`: Added `TestMaxHeap` suite with 5 unit tests covering empty heap errors (IndexError on peek/extract), single item, priority ordering, duplicate priorities, and 200-item randomized validation against reverse-sorted oracle.
+- **Tests Added & Result**:
+  - 5 new unit tests in `tests/test_ds_heaps.py`. Full test suite: 38/38 passed in 0.46s.
+- **Rules / Edge Cases Covered**:
+  - Doc 12.1 ADT testing requirements (empty, single, duplicates, randomized validation).
+  - Hard rule: zero `heapq` in `ds/`.
+- **Anything Left Open**:
+  - Proceed to Task 1.5: BST implementation.

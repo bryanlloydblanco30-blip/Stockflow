@@ -115,9 +115,67 @@ class TestMinHeap(unittest.TestCase):
 
 
 class TestMaxHeap(unittest.TestCase):
-    def test_placeholder(self):
-        h = MaxHeap()
-        self.assertTrue(h.is_empty())
+    def setUp(self):
+        self.heap = MaxHeap()
+
+    def test_empty_heap(self):
+        self.assertTrue(self.heap.is_empty())
+        self.assertEqual(self.heap.size(), 0)
+        with self.assertRaises(IndexError):
+            self.heap.peek_max()
+        with self.assertRaises(IndexError):
+            self.heap.extract_max()
+
+    def test_single_item(self):
+        self.heap.insert("item_a", priority=75)
+        self.assertFalse(self.heap.is_empty())
+        self.assertEqual(self.heap.size(), 1)
+        self.assertEqual(self.heap.peek_max(), "item_a")
+
+        extracted = self.heap.extract_max()
+        self.assertEqual(extracted, "item_a")
+        self.assertTrue(self.heap.is_empty())
+
+    def test_max_property_ordering(self):
+        self.heap.insert("low", priority=10)
+        self.heap.insert("highest", priority=95)
+        self.heap.insert("mid", priority=50)
+        self.heap.insert("high", priority=80)
+
+        self.assertEqual(self.heap.extract_max(), "highest")
+        self.assertEqual(self.heap.extract_max(), "high")
+        self.assertEqual(self.heap.extract_max(), "mid")
+        self.assertEqual(self.heap.extract_max(), "low")
+        self.assertTrue(self.heap.is_empty())
+
+    def test_duplicate_priorities(self):
+        self.heap.insert("dup1", priority=40)
+        self.heap.insert("top", priority=90)
+        self.heap.insert("dup2", priority=40)
+
+        self.assertEqual(self.heap.extract_max(), "top")
+        second = self.heap.extract_max()
+        third = self.heap.extract_max()
+        self.assertEqual({second, third}, {"dup1", "dup2"})
+        self.assertTrue(self.heap.is_empty())
+
+    def test_random_max_heap_against_sorted(self):
+        rng = random.Random(4242)
+        items = []
+        for i in range(200):
+            p = (rng.randint(1, 500), -i)  # unique priority with insertion tie-break
+            val = f"prod_{i}"
+            items.append((p, val))
+            self.heap.insert(val, priority=p)
+
+        items.sort(key=lambda x: x[0], reverse=True)
+        expected_order = [x[1] for x in items]
+
+        extracted = []
+        while not self.heap.is_empty():
+            extracted.append(self.heap.extract_max())
+
+        self.assertEqual(extracted, expected_order)
 
 
 if __name__ == "__main__":
