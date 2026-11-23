@@ -77,4 +77,5 @@ def init_schema(conn) -> None:
     with conn:
         conn.executescript(CREATE_TABLES_SQL)
         conn.execute("INSERT OR IGNORE INTO schema_version (version) VALUES (?)", (SCHEMA_VERSION,))
+        conn.execute("INSERT OR IGNORE INTO locations (id, name) VALUES (1, 'Main Store');")
 

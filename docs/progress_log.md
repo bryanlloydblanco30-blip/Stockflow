@@ -121,3 +121,89 @@
   - Zero imports of `heapq`, `sorted`, or `dict` lookup shortcuts in `backend/ds/`.
 - **Anything Left Open**:
   - Phase 1 complete. Proceed to Phase 2: Models and Storage.
+
+## Phase 2: Models and SQLite Storage Engine (Tasks 2.1 – 2.5) & Exit Gate Passed
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/db/storage.py`: Implemented `StoreMemoryState`, `load_all_into_memory()`, `save_category()`, `save_product()`, `save_batch()`, and atomic sale persistence `save_transaction_atomic()`.
+    - Automatically builds custom in-memory indices upon load:
+      - `BST`: Barcode -> Product mapping without dict shortcuts.
+      - `Trie`: Lowercase product name prefix search.
+      - `MinHeap`: Per-product FEFO priority queue (earliest expiry first; received_date tie-break / key for untracked).
+      - Plain dynamic array for categories (Decision D13).
+    - `save_transaction_atomic()`: Enforces single SQLite unit-of-work with atomic rollback and simultaneous batch quantity deductions.
+  - `backend/db/schema.py`: Stamped schema version and initialized default location (Main Store) with foreign keys enabled.
+  - `tests/test_models_storage.py`: Implemented comprehensive test suite covering schema init, category/product persistence, load into in-memory structures, atomic sale commit, rollback on constraint violation, and save-then-load consistency.
+- **Tests Added & Result**:
+  - 5 comprehensive tests added in `tests/test_models_storage.py`.
+  - Full test suite: 66/66 passed (100% OK in 0.30s).
+- **Rules / Edge Cases Covered**:
+  - Phase 2 exit gate: Close and reopen gives identical state; atomic sale test passes; zero banned built-ins in `backend/db/storage.py`.
+- **Anything Left Open**:
+  - Phase 2 complete. Proceed to Phase 3: Products, Categories, Inventory, and Alert Services.
+
+## Phase 3: Products, Categories, Inventory, Alerts (Tasks 3.1 – 3.9) & Exit Gate Passed
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/services/category_service.py`: Implemented add, rename, delete (moves products to Uncategorized with count), toggle tracking (flags 'Expiry date needed' on No -> Yes without guessing dates), dynamic red days (1/3 of warn_days, min 1), and 7-day default window for uncategorized products.
+  - `backend/services/product_service.py`: Implemented product registration, editing, soft delete (active=0, pruning from indices), BST barcode search, and Trie lowercase prefix autocomplete (limit 8).
+  - `backend/services/alert_service.py`: Implemented dynamic alert level calculation (`EXPIRED`, `RED`, `AMBER`, `OK`, `NO_EXPIRY`) from date without storing in DB (D9). Added `is_sellable()` (expiry today is Red and sellable; expired is blocked from sale, D10) and Min-Heap ordered scan optimization (stops at first batch outside window, Doc 6.3).
+  - `backend/services/inventory_service.py`: Implemented batch receiving with older-stock warning (IN-5), shelf-rotation flag `moved_to_front` (IN-6), expired write-off logging in PHP (IN-7), physical stock adjustments with mandatory audit reasons (IN-8), and unresolved expiry batch flagging (Task 3.9).
+  - `tests/test_services_inventory.py`: Added 8 tests covering category CRUD, product search/deletion, alert levels, older-stock warnings, shelf rotation, write-offs, and stock adjustments.
+  - `tests/test_edge_cases.py`: Implemented and verified Edge Cases 1–6 and 10–12 from Doc 12.2.
+- **Tests Added & Result**:
+  - 15 new unit tests added across `tests/test_services_inventory.py` and `tests/test_edge_cases.py`.
+  - Full test suite: 81/81 passed (100% OK in 0.39s).
+- **Rules / Edge Cases Covered**:
+  - Edge Case 1: Batch expires today -> Red, sellable.
+  - Edge Case 2: Batch expired yesterday -> Expired, not sellable.
+  - Edge Case 3: Exactly at amber window -> Amber.
+  - Edge Case 4: One day past amber window -> OK.
+  - Edge Case 5: Empty expiry in no-expiry category -> Never in alerts, ordered by received date.
+  - Edge Case 6: Category switched to tracking -> Flagged 'Expiry date needed', not guessed.
+  - Edge Case 10: Same expiry on two batches -> Earlier received sells first.
+  - Edge Case 11: Product with no category -> Global default 7 days.
+  - Edge Case 12: Category deleted -> Products move to Uncategorized.
+- **Phase 3 Exit Gate**:
+  - Entire stock lifecycle runs from tests with no UI. All Doc 12.2 Phase 3 edge cases pass. Zero banned built-ins in `services/`.
+- **Anything Left Open**:
+  - Phase 3 complete. Proceed to Phase 4: Point of Sale, FEFO Engine, Receipt Data, and Undo (Tasks 4.1 – 4.9).
+
+## Phase 4: Point of Sale, FEFO Deduction, Receipt Formatting, and Undo (Tasks 4.1 – 4.9) & Exit Gate Passed
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/services/fefo_service.py`: Implemented FEFO deduction engine:
+    - Pre-deduction check: validates total sellable stock and blocks sales if only expired stock remains (D10 / Edge Case 8).
+    - Multi-batch deduction: extracts batches from Min-Heap, skips un-sellable/expired batches (preserving them for alerts/write-offs), deducts from front batch, spans to subsequent batches (Edge Case 7), and re-inserts partially depleted batches.
+    - Untracked batches handled via FIFO with `received_date` priority (D8).
+  - `backend/services/pos_service.py`: Implemented POS service and cart:
+    - Cart implemented strictly on custom `Doubly LinkedList` (Task 4.2 / Doc 6.6) with O(1) operations, automatic line merging, quantity editing, removal, and traversal total.
+    - Unified barcode entry `process_barcode_entry()` resolving known barcodes via custom BST and flagging unknown barcodes as `UNKNOWN` to guide product registration (Tasks 4.1 & 4.9 / Doc 9.4).
+    - Checkout cash validation: verifies cash given >= total, calculates change in PHP, and rejects underpayment (Task 4.3 / Edge Case 14).
+    - End-to-end receipt formatting: generates itemized receipt breakdown directly from cart traversal (Task 4.5 / POS-6).
+    - RS-1 Low-stock notification: scans post-checkout sellable stock against reorder levels (Task 4.8).
+  - `backend/services/undo_service.py`: Implemented single-level Undo via custom `Stack` (Task 4.7 / Doc 6.7 / Decision D2):
+    - Validates stack state and checks SQLite to block undo if any newer transaction has occurred (Doc 6.7 / Edge Case 15).
+    - Restores exact batch quantities to SQLite and re-inserts exhausted batches into the product's in-memory Min-Heap.
+    - Creates an auditable `void` transaction header referencing `reverses_id`.
+  - `tests/test_services_pos_fefo.py`: Comprehensive test suite for unified barcode entry, cart linked list, multi-batch FEFO deduction, cash checkout, mixed cart, and low-stock checks.
+  - `tests/test_services_undo.py`: Test suite for single-level undo, exact batch restoration, and rejection if newer transactions exist.
+  - `tests/test_edge_cases.py`: Added tests covering Edge Case 13 (historical prices frozen on transaction lines despite catalog price changes), Edge Case 15 (void blocked on newer transaction), and Edge Case 16 (atomic rollback on database write failure).
+- **Tests Added & Result**:
+  - 11 new unit tests added across `tests/test_services_pos_fefo.py`, `tests/test_services_undo.py`, and `tests/test_edge_cases.py`.
+  - Full test suite: 92/92 passed (100% OK in 0.37s).
+- **Rules / Edge Cases Covered**:
+  - Edge Case 7: Spanning multiple batches during FEFO deduction.
+  - Edge Case 8: Sale blocked when only expired stock remains.
+  - Edge Case 9: Cart with mixed tracked and no-expiry items.
+  - Edge Case 13: Price change after sale leaves historical transactions unchanged.
+  - Edge Case 14: Insufficient cash payment blocked.
+  - Edge Case 15: Undo blocked if newer transaction exists.
+  - Edge Case 16: Interrupted transaction leaves no partial sale (atomic sale rollback).
+- **Phase 4 Exit Gate**:
+  - Full sale (single batch, multi-batch spanning, mixed cart) works end-to-end with no UI.
+  - Edge cases 7 to 9, 13 to 16 pass 100%.
+  - Zero imports of `heapq`, `dict`, or `sorted` in `backend/ds/` or `backend/services/`.
+- **Anything Left Open**:
+  - Phase 4 complete. Proceed to Phase 5: Restock Priority Queue and Financial Reporting (Tasks 5.1 – 5.7).
+
