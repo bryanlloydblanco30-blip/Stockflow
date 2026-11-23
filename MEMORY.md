@@ -32,6 +32,6 @@
 
 ## 4. Current State & Next Steps
 - **Active Phase**: Phase 0: Foundations
-- **Current Task**: Phase 5: Restock Queue and Financial Reports
-- **Last Completed Task**: Phase 4: Point of Sale, FEFO Deduction, Receipt Formatting, and Undo (on 23 Nov 2026, 10:44)
-- **Last Test Status**: 92/92 passed
+- **Current Task**: Phase 6: Sample Data Generation and Benchmarks B1 to B6
+- **Last Completed Task**: Phase 5: Restock Priority Queue and Financial Reporting (on 23 Nov 2026, 11:32)
+- **Last Test Status**: 96/96 passed

@@ -207,3 +207,32 @@
 - **Anything Left Open**:
   - Phase 4 complete. Proceed to Phase 5: Restock Priority Queue and Financial Reporting (Tasks 5.1 – 5.7).
 
+## Phase 5: Restock Priority Queue and Financial Reporting (Tasks 5.1 – 5.7) & Exit Gate Passed
+- **Date**: 23 Nov 2026
+- **What Changed**:
+  - `backend/services/restock_service.py`: Implemented restock logic (Doc 6.8 / Tasks 5.1 – 5.3):
+    - Selling speed: 14-day average of non-voided sales units.
+    - Days of cover: `sellable_stock / selling_speed` (infinity if selling speed is 0 and stock > 0).
+    - Suggested reorder: `ceil(selling_speed * target_cover_days - sellable_stock)`, never below 0.
+    - Restock priority queue: built strictly from scratch on `MaxHeap` (Task 5.2 / Doc 6.8), ordered by lowest days of cover first, selling speed second, with contextual reason text per row.
+  - `backend/services/report_service.py`: Implemented financial and analytics reporting (Doc 7.3 C, Doc 10 / Tasks 5.4 – 5.7):
+    - Financial summary: Revenue, COGS, Gross Profit, Gross Margin % (0% when revenue is 0), Spoilage from write-offs, and Current Sellable Inventory Value at Cost.
+    - Daily Prefix Sums: Builds custom `PrefixSums` arrays for daily Revenue, Units, and COGS enabling O(1) arbitrary date-range queries.
+    - Fast and Slow Movers: Top-k and Bottom-k sellers powered by custom bounded `SizeKHeap` in `top` and `bottom` modes (Task 5.4 / Doc 10.1).
+    - Dashboard KPIs: Today's sales, profit, low stock count, and near-expiry count (tracked products only, RED and AMBER alert levels).
+    - Complete exclusion of voided sales from all financial calculations and metrics.
+  - `tests/test_services_reports.py`: Implemented comprehensive fixed-dataset verification with exact hand-calculated assertions.
+- **Tests Added & Result**:
+  - 5 comprehensive tests added in `tests/test_services_reports.py`.
+  - Full test suite: 96/96 passed (100% OK in 0.34s).
+- **Rules / Edge Cases Covered**:
+  - Exact match of report numbers against hand-calculated values on fixed dataset.
+  - Voided sales excluded from all report metrics.
+  - Zero imports of `heapq`, `dict`, or `sorted` in `backend/ds/` or `backend/services/`.
+- **Phase 5 Exit Gate**:
+  - Report numbers equal hand-calculated values on fixed dataset.
+  - Voided sales excluded from all totals.
+- **Anything Left Open**:
+  - Phase 5 complete. Proceed to Phase 6: Sample Data Generation and Benchmarks B1 through B6.
+
+
