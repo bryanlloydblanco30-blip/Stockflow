@@ -236,3 +236,14 @@
   - Phase 5 complete. Proceed to Phase 6: Sample Data Generation and Benchmarks B1 through B6.
 
 
+
+## Phase 6: Sample Data and Benchmarks (Tasks 6.1 – 6.3) & Feature Freeze Gate Passed
+- **Date**: 24 Nov 2026
+- **What Changed**:
+  - `benchmarks/b2_name_search.py` .. `benchmarks/b6_topk_sellers.py`: Implemented benchmarks B2–B6 following the `time.perf_counter()` warmup + 30-iteration protocol (min, median, max).
+  - `benchmarks/run_all.py`: Created unified runner generating machine/Python metadata, JSON results (`benchmarks/results/results.json`), Markdown summary (`benchmarks/results/RESULTS.md`), and 6 pure-Python SVG charts (`b1_chart.svg` .. `b6_chart.svg`) with zero heavy native libraries.
+- **Tests Added & Result**:
+  - Full test suite: 96/96 passed in 0.34s (`pytest -q`).
+  - Benchmarks B1–B6 executed and saved to `benchmarks/results/`.
+- **Phase 6 Exit Gate & Feature Freeze**:
+  - All 6 benchmarks have saved tables and charts. Feature freeze is now in place; proceed to Phase 7 (Flet Desktop UI wiring and remaining screens).

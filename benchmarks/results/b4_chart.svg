@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="400" viewBox="0 0 760 400">
+<rect width="100%" height="100%" fill="#FFF9EF" rx="16"/>
+<text x="80" y="30" font-family="Segoe UI, Inter, sans-serif" font-size="18" font-weight="700" fill="#202334">B4: Out-of-Stock Product-Days Over Simulated Periods</text>
+<text x="80" y="50" font-family="Segoe UI, Inter, sans-serif" font-size="12" fill="#69756B">Restock Priority Queue (Max-Heap) vs No Alerts Baseline</text>
+<line x1="80" y1="335.0" x2="730" y2="335.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="339.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">0</text>
+<line x1="80" y1="270.0" x2="730" y2="270.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="274.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">278</text>
+<line x1="80" y1="205.0" x2="730" y2="205.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="209.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">556</text>
+<line x1="80" y1="140.0" x2="730" y2="140.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="144.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">835</text>
+<line x1="80" y1="75.0" x2="730" y2="75.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="79.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">1,113</text>
+<text x="18" y="205.0" transform="rotate(-90 18 205.0)" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">Median Stockout Days</text>
+<rect x="150.3" y="257.8" width="36.0" height="77.2" fill="#E07A5F" rx="4"/>
+<text x="168.3" y="252.8" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">330</text>
+<rect x="190.3" y="292.1" width="36.0" height="42.9" fill="#245C45" rx="4"/>
+<text x="208.3" y="287.1" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">184</text>
+<text x="188.3" y="355" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="12" font-weight="600" fill="#202334">30d</text>
+<rect x="367.0" y="167.0" width="36.0" height="168.0" fill="#E07A5F" rx="4"/>
+<text x="385.0" y="162.0" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">719</text>
+<rect x="407.0" y="230.7" width="36.0" height="104.3" fill="#245C45" rx="4"/>
+<text x="425.0" y="225.7" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">446</text>
+<text x="405.0" y="355" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="12" font-weight="600" fill="#202334">60d</text>
+<rect x="583.7" y="75.0" width="36.0" height="260.0" fill="#E07A5F" rx="4"/>
+<text x="601.7" y="85.0" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">1,113</text>
+<rect x="623.7" y="169.0" width="36.0" height="166.0" fill="#245C45" rx="4"/>
+<text x="641.7" y="164.0" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">710</text>
+<text x="621.7" y="355" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="12" font-weight="600" fill="#202334">90d</text>
+<rect x="80" y="368" width="12" height="12" fill="#E07A5F" rx="3"/>
+<text x="98" y="378" font-family="Segoe UI, Inter, sans-serif" font-size="12" fill="#202334">No Alerts</text>
+<rect x="184.8" y="368" width="12" height="12" fill="#245C45" rx="3"/>
+<text x="202.8" y="378" font-family="Segoe UI, Inter, sans-serif" font-size="12" fill="#202334">Max-Heap PQ</text>
+</svg>

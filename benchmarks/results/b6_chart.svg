@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="400" viewBox="0 0 760 400">
+<rect width="100%" height="100%" fill="#FFF9EF" rx="16"/>
+<text x="80" y="30" font-family="Segoe UI, Inter, sans-serif" font-size="18" font-weight="700" fill="#202334">B6: Top-k Sellers (k=5, Median us)</text>
+<text x="80" y="50" font-family="Segoe UI, Inter, sans-serif" font-size="12" fill="#69756B">Custom Size-k Heap vs Python C-level sorted()</text>
+<line x1="80" y1="335.0" x2="730" y2="335.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="339.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">0</text>
+<line x1="80" y1="270.0" x2="730" y2="270.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="274.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">7,099</text>
+<line x1="80" y1="205.0" x2="730" y2="205.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="209.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">14,199</text>
+<line x1="80" y1="140.0" x2="730" y2="140.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="144.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">21,298</text>
+<line x1="80" y1="75.0" x2="730" y2="75.0" stroke="#E0DEC4" stroke-width="1"/>
+<text x="72" y="79.0" text-anchor="end" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">28,397</text>
+<text x="18" y="205.0" transform="rotate(-90 18 205.0)" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="11" fill="#69756B">Microseconds (us)</text>
+<rect x="123.2" y="334.9" width="36.0" height="0.1" fill="#E07A5F" rx="4"/>
+<text x="141.2" y="329.9" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">8.5</text>
+<rect x="163.2" y="334.5" width="36.0" height="0.5" fill="#245C45" rx="4"/>
+<text x="181.2" y="329.5" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">54.8</text>
+<text x="161.2" y="355" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="12" font-weight="600" fill="#202334">n=100</text>
+<rect x="285.8" y="333.9" width="36.0" height="1.1" fill="#E07A5F" rx="4"/>
+<text x="303.8" y="328.9" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">125</text>
+<rect x="325.8" y="333.0" width="36.0" height="2.0" fill="#245C45" rx="4"/>
+<text x="343.8" y="328.0" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">219</text>
+<text x="323.8" y="355" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="12" font-weight="600" fill="#202334">n=1000</text>
+<rect x="448.2" y="320.4" width="36.0" height="14.6" fill="#E07A5F" rx="4"/>
+<text x="466.2" y="315.4" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">1,598</text>
+<rect x="488.2" y="317.9" width="36.0" height="17.1" fill="#245C45" rx="4"/>
+<text x="506.2" y="312.9" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">1,869</text>
+<text x="486.2" y="355" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="12" font-weight="600" fill="#202334">n=10000</text>
+<rect x="610.8" y="75.0" width="36.0" height="260.0" fill="#E07A5F" rx="4"/>
+<text x="628.8" y="85.0" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">28,397</text>
+<rect x="650.8" y="141.7" width="36.0" height="193.3" fill="#245C45" rx="4"/>
+<text x="668.8" y="136.7" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="10" fill="#202334">21,109</text>
+<text x="648.8" y="355" text-anchor="middle" font-family="Segoe UI, Inter, sans-serif" font-size="12" font-weight="600" fill="#202334">n=100000</text>
+<rect x="80" y="368" width="12" height="12" fill="#E07A5F" rx="3"/>
+<text x="98" y="378" font-family="Segoe UI, Inter, sans-serif" font-size="12" fill="#202334">Full sorted() (C)</text>
+<rect x="242.4" y="368" width="12" height="12" fill="#245C45" rx="3"/>
+<text x="260.4" y="378" font-family="Segoe UI, Inter, sans-serif" font-size="12" fill="#202334">Size-k Heap (Py)</text>
+</svg>

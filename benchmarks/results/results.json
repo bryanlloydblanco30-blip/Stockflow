@@ -1,0 +1,354 @@
+{
+  "meta": {
+    "python_version": "3.13.4",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "AMD64 Family 23 Model 104 Stepping 1, AuthenticAMD",
+    "machine": "AMD64"
+  },
+  "B1": {
+    "100": {
+      "naive_linear": {
+        "min_us": 14.799999917158857,
+        "median_us": 14.899999996487168,
+        "max_us": 24.699999812582973
+      },
+      "bst_avg": {
+        "min_us": 5.499999815583578,
+        "median_us": 5.600000008598727,
+        "max_us": 5.900000132896821
+      },
+      "bst_worst": {
+        "min_us": 36.399999999048305,
+        "median_us": 36.60000004401809,
+        "max_us": 40.399999988949276
+      }
+    },
+    "1000": {
+      "naive_linear": {
+        "min_us": 130.59999992037774,
+        "median_us": 130.79999996534752,
+        "max_us": 160.4999999926804
+      },
+      "bst_avg": {
+        "min_us": 7.899999900473631,
+        "median_us": 8.099999945443415,
+        "max_us": 9.700000191514846
+      },
+      "bst_worst": {
+        "min_us": 418.2000000128028,
+        "median_us": 427.6000000800195,
+        "max_us": 459.09999994364625
+      }
+    },
+    "10000": {
+      "naive_linear": {
+        "min_us": 1470.999999810374,
+        "median_us": 1496.6500000355154,
+        "max_us": 1749.90000004982
+      },
+      "bst_avg": {
+        "min_us": 10.099999826707062,
+        "median_us": 10.299999985363684,
+        "max_us": 12.199999900985858
+      },
+      "bst_worst": {
+        "min_us": 3582.3000000618777,
+        "median_us": 3714.9999999428474,
+        "max_us": 4817.799999955241
+      }
+    }
+  },
+  "B2": {
+    "100": {
+      "naive_scan": {
+        "min_us": 67.30000018251303,
+        "median_us": 69.00000016685226,
+        "max_us": 79.89999994606478
+      },
+      "trie": {
+        "min_us": 55.799999927330646,
+        "median_us": 56.99999996977567,
+        "max_us": 144.3999999537482
+      }
+    },
+    "1000": {
+      "naive_scan": {
+        "min_us": 217.49999996245606,
+        "median_us": 222.84999988642085,
+        "max_us": 228.10000018580467
+      },
+      "trie": {
+        "min_us": 56.50000002788147,
+        "median_us": 57.499999911669875,
+        "max_us": 149.79999991737714
+      }
+    },
+    "10000": {
+      "naive_scan": {
+        "min_us": 1493.2999999928143,
+        "median_us": 1535.0999999554915,
+        "max_us": 1564.5999999378546
+      },
+      "trie": {
+        "min_us": 50.29999988437339,
+        "median_us": 51.549999966482574,
+        "max_us": 59.89999999655993
+      }
+    },
+    "100000": {
+      "naive_scan": {
+        "min_us": 13806.500000100641,
+        "median_us": 13961.150000000089,
+        "max_us": 17539.50000011173
+      },
+      "trie": {
+        "min_us": 50.59999989498465,
+        "median_us": 52.050000022063614,
+        "max_us": 76.79999998799758
+      }
+    }
+  },
+  "B3": {
+    "30d": {
+      "fefo_min_heap": {
+        "min_units": 6,
+        "median_units": 20.0,
+        "max_units": 58
+      },
+      "fifo_baseline": {
+        "min_units": 28,
+        "median_units": 53.0,
+        "max_units": 93
+      },
+      "random_baseline": {
+        "min_units": 55,
+        "median_units": 109.5,
+        "max_units": 148
+      }
+    },
+    "60d": {
+      "fefo_min_heap": {
+        "min_units": 11,
+        "median_units": 49.0,
+        "max_units": 93
+      },
+      "fifo_baseline": {
+        "min_units": 68,
+        "median_units": 94.5,
+        "max_units": 164
+      },
+      "random_baseline": {
+        "min_units": 119,
+        "median_units": 180.0,
+        "max_units": 242
+      }
+    },
+    "90d": {
+      "fefo_min_heap": {
+        "min_units": 16,
+        "median_units": 81.0,
+        "max_units": 126
+      },
+      "fifo_baseline": {
+        "min_units": 73,
+        "median_units": 139.5,
+        "max_units": 198
+      },
+      "random_baseline": {
+        "min_units": 168,
+        "median_units": 240.5,
+        "max_units": 381
+      }
+    }
+  },
+  "B4": {
+    "30d": {
+      "priority_queue": {
+        "min_stockout_days": 125,
+        "median_stockout_days": 183.5,
+        "max_stockout_days": 207
+      },
+      "no_alerts": {
+        "min_stockout_days": 247,
+        "median_stockout_days": 330.5,
+        "max_stockout_days": 386
+      }
+    },
+    "60d": {
+      "priority_queue": {
+        "min_stockout_days": 386,
+        "median_stockout_days": 446.5,
+        "max_stockout_days": 475
+      },
+      "no_alerts": {
+        "min_stockout_days": 546,
+        "median_stockout_days": 719.0,
+        "max_stockout_days": 842
+      }
+    },
+    "90d": {
+      "priority_queue": {
+        "min_stockout_days": 646,
+        "median_stockout_days": 710.5,
+        "max_stockout_days": 736
+      },
+      "no_alerts": {
+        "min_stockout_days": 868,
+        "median_stockout_days": 1113.0,
+        "max_stockout_days": 1301
+      }
+    }
+  },
+  "B5": {
+    "1000": {
+      "naive_loop": {
+        "min_us": 361.89999991620425,
+        "median_us": 374.29999997584673,
+        "max_us": 389.00000004105095
+      },
+      "prefix_sums": {
+        "min_us": 3.6999999792897142,
+        "median_us": 3.800000058618025,
+        "max_us": 4.399999852466863
+      }
+    },
+    "10000": {
+      "naive_loop": {
+        "min_us": 3388.399999948888,
+        "median_us": 3531.7499999791835,
+        "max_us": 3664.399999934176
+      },
+      "prefix_sums": {
+        "min_us": 3.6999999792897142,
+        "median_us": 3.7999998312443495,
+        "max_us": 3.89999991057266
+      }
+    },
+    "100000": {
+      "naive_loop": {
+        "min_us": 33037.89999995388,
+        "median_us": 33738.94999992899,
+        "max_us": 37737.099999958446
+      },
+      "prefix_sums": {
+        "min_us": 3.5999998999614036,
+        "median_us": 3.600000127335079,
+        "max_us": 4.300000000512227
+      }
+    },
+    "1000000": {
+      "naive_loop": {
+        "min_us": 400855.0999999443,
+        "median_us": 412923.15000009694,
+        "max_us": 537728.3999998781
+      },
+      "prefix_sums": {
+        "min_us": 3.5999998999614036,
+        "median_us": 3.600000127335079,
+        "max_us": 3.800000058618025
+      }
+    }
+  },
+  "B6": {
+    "k=5": {
+      "100": {
+        "full_sort": {
+          "min_us": 8.299999990413198,
+          "median_us": 8.499999921696144,
+          "max_us": 9.000000090964022
+        },
+        "size_k_heap": {
+          "min_us": 52.89999990054639,
+          "median_us": 54.84999996951956,
+          "max_us": 106.00000018712308
+        }
+      },
+      "1000": {
+        "full_sort": {
+          "min_us": 124.89999994613754,
+          "median_us": 125.49999996736005,
+          "max_us": 149.29999997548293
+        },
+        "size_k_heap": {
+          "min_us": 217.49999996245606,
+          "median_us": 218.9499999758482,
+          "max_us": 223.30000001602457
+        }
+      },
+      "10000": {
+        "full_sort": {
+          "min_us": 1567.4000001126842,
+          "median_us": 1598.3499999947526,
+          "max_us": 2189.4999999858555
+        },
+        "size_k_heap": {
+          "min_us": 1830.4000000171072,
+          "median_us": 1868.999999942389,
+          "max_us": 2266.499999905136
+        }
+      },
+      "100000": {
+        "full_sort": {
+          "min_us": 26454.800000010437,
+          "median_us": 28397.34999997745,
+          "max_us": 47338.50000002349
+        },
+        "size_k_heap": {
+          "min_us": 20274.399999834714,
+          "median_us": 21109.400000113965,
+          "max_us": 24440.799999865703
+        }
+      }
+    },
+    "k=10": {
+      "100": {
+        "full_sort": {
+          "min_us": 8.399999842367833,
+          "median_us": 8.499999921696144,
+          "max_us": 10.200000133409048
+        },
+        "size_k_heap": {
+          "min_us": 83.2000000627886,
+          "median_us": 83.60000003904133,
+          "max_us": 87.89999992586672
+        }
+      },
+      "1000": {
+        "full_sort": {
+          "min_us": 123.99999991430377,
+          "median_us": 124.40000000424334,
+          "max_us": 127.9000000522501
+        },
+        "size_k_heap": {
+          "min_us": 248.900000087815,
+          "median_us": 252.24999990314245,
+          "max_us": 278.7000000807893
+        }
+      },
+      "10000": {
+        "full_sort": {
+          "min_us": 1544.5999999883497,
+          "median_us": 1566.850000017439,
+          "max_us": 2255.2999998879386
+        },
+        "size_k_heap": {
+          "min_us": 1924.5999999384367,
+          "median_us": 1963.9500000039334,
+          "max_us": 2637.4999999916326
+        }
+      },
+      "100000": {
+        "full_sort": {
+          "min_us": 23944.900000060443,
+          "median_us": 25851.600000009967,
+          "max_us": 37860.000000137006
+        },
+        "size_k_heap": {
+          "min_us": 18358.300000045347,
+          "median_us": 18882.5000000179,
+          "max_us": 19938.700000011522
+        }
+      }
+    }
+  }
+}
