@@ -17,9 +17,6 @@ class TestProjectLayout(unittest.TestCase):
             "backend.models",
             "backend.db",
             "backend.services",
-            "frontend",
-            "frontend.components",
-            "frontend.screens",
             "data",
             "benchmarks",
             "tests",
@@ -35,8 +32,8 @@ class TestProjectLayout(unittest.TestCase):
             root / "backend" / "models",
             root / "backend" / "db",
             root / "backend" / "services",
-            root / "frontend" / "components",
-            root / "frontend" / "screens",
+            root / "frontend" / "src" / "components",
+            root / "frontend" / "src" / "pages",
             root / "docs" / "adt",
             root / "design" / "wireframes",
             root / "benchmarks" / "results",
@@ -44,6 +41,7 @@ class TestProjectLayout(unittest.TestCase):
         ]
         for d in expected_dirs:
             self.assertTrue(d.is_dir(), f"Expected directory does not exist: {d}")
+        self.assertTrue((root / "frontend" / "package.json").is_file(), "React frontend/package.json missing")
 
 
 if __name__ == "__main__":

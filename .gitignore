@@ -20,5 +20,7 @@ build/
 
 # Local databases & logs
 *.db
+*.db-shm
+*.db-wal
 *.sqlite3
 

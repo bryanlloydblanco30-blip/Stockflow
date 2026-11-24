@@ -4,16 +4,16 @@
 - **Project**: StockFlow (Offline Desktop Inventory, POS & Financial Reporting)
 - **Target Platform**: Desktop PC (Windows assumed, platform-neutral core logic)
 - **Runtime & Language**: Python 3 (Tested on Python 3.13)
-- **UI Framework**: Flet (Desktop UI, Material Design 3, pinned in `requirements.txt`)
+- **UI Framework**: React (React 19 + TypeScript + Vite + Tailwind CSS in `frontend/`; switched from Flet per owner decision D18)
 - **Storage**: SQLite (`sqlite3`, stored locally, platform-neutral path provider)
 - **Currency & Formatting**: PHP (`PHP 1,250.00`), Dates (`12 Nov 2026`)
 
 ## 2. Hard Architectural Rules (Never Break)
 - **Frontend / Backend Separation**:
-  - `frontend/`: UI screens & components using Flet desktop.
+  - `frontend/`: UI screens & components using React + TypeScript + Vite (`npm run dev`).
   - `backend/`: Core business logic (`services/`), custom data structures (`ds/`), models (`models/`), and persistence (`db/`).
-  - `frontend/` calls `backend.services`. Layers talk strictly downward. No business rules in `frontend/`.
-  - `backend/` contains **NO Flet imports** and runs under `pytest` with no UI.
+  - `frontend/` calls `backend.services` (via API/bridge). Layers talk strictly downward. No business rules in `frontend/`.
+  - `backend/` contains **NO UI framework imports** and runs under `pytest` with no UI.
 - **From-Scratch Data Structures in `ds/`**:
   - Linked List, Stack, Min-Heap, Max-Heap, BST, Trie, Prefix Sums, Size-k Heap.
   - **ABSOLUTE BAN**: `heapq`, `dict`, and `sorted` are prohibited in `ds/` and `services/` (allowed ONLY inside `benchmarks/` as naive baselines).
@@ -31,7 +31,7 @@
 - Log task completions in `docs/progress_log.md` and keep `MEMORY.md` synchronized.
 
 ## 4. Current State & Next Steps
-- **Active Phase**: Phase 7: Desktop UI
-- **Current Task**: Phase 7: Flet Desktop UI Wiring & Remaining Screens
-- **Last Completed Task**: Phase 6: Benchmarks B1-B6 implemented, executed, and saved with SVG charts (on 24 Nov 2026, 22:13)
-- **Last Test Status**: 96/96 passed
+- **Active Phase**: Phase 7: React UI
+- **Current Task**: Phase 7 HUMAN gates (scanner & usability tests) -> Phase 8 Release
+- **Last Completed Task**: Maintenance: Removed .figma and simplified vite.config.ts to standard React/Tailwind (on 24 Nov 2026, 23:24)
+- **Last Test Status**: 97/97 passed (pytest) + Vite build OK (clean, 0 warnings)

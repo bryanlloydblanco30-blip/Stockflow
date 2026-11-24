@@ -247,3 +247,47 @@
   - Benchmarks B1–B6 executed and saved to `benchmarks/results/`.
 - **Phase 6 Exit Gate & Feature Freeze**:
   - All 6 benchmarks have saved tables and charts. Feature freeze is now in place; proceed to Phase 7 (Flet Desktop UI wiring and remaining screens).
+
+
+## Phase 7: React Frontend Integration, Local Stdlib API Server & Remaining Screens (Decision D18)
+- **Date**: 24 Nov 2026
+- **What Changed**:
+  - `docs/decisions_log.md` & `MEMORY.md`: Logged Decision **D18** (UI framework switched from Flet to React 19 + TypeScript + Vite + Tailwind CSS in `frontend/`).
+  - `tests/test_layout.py` & `main.py`: Updated project layout test to validate the React frontend structure (`frontend/src/components`, `frontend/src/pages`, `frontend/package.json`) and updated `main.py` to launch the local Python API server.
+  - `backend/api_server.py`: Built zero-dependency stdlib `ThreadingHTTPServer` exposing all `backend/services/` endpoints (dashboard, categories, products, BST barcode scan, Trie search, LinkedList cart, atomic FEFO checkout, single-level Stack undo, stock receive/adjust/write-off/rotate, alerts, MaxHeap restock queue, PrefixSums & SizeKHeap reports, settings, and SQLite backup/restore) with automatic first-run seeding from `data/inventory.csv`.
+  - `tests/test_api_server.py`: Added end-to-end integration test covering the full API workflow.
+  - `frontend/vite.config.ts` & `frontend/src/api.ts`: Configured `/api` proxy to `http://127.0.0.1:8000` and created typed API client with `PHP 1,250.00` and `12 Nov 2026` formatters.
+  - Wired all existing React pages (`HomePage`, `SellPage`, `StockPage`, `AdjustCountPage`, `RestockPage`, `ReportsPage`, `HistoryPage`) to the live Python backend and added `AlertsPage` (Near-Expiry, Shelf-Rotation Checklist, Expired Write-Offs) and `SettingsPage` (Store defaults, Category management, SQLite Backup & Restore).
+- **Tests Added & Result**:
+  - Added `tests/test_api_server.py`. Full Python test suite: **97/97 passed** in 0.40s (`pytest -q`).
+  - Frontend production build (`npm run build`) and live Vite proxy `/api/health` verified (`83 products, 12 categories`).
+- **Anything Left Open**:
+  - Phase 7 HUMAN gates: USB/webcam scanner test (7.7) and usability test (7.8), then Phase 8 Release.
+
+
+## Maintenance: Cleaned Dead Mock Data and Redundant Template Artifacts
+- **Date**: 24 Nov 2026
+- **What Changed**:
+  - Removed dead mock data file `frontend/src/inventoryData.ts` (1,180 lines, fully replaced by `/api/*` SQLite API).
+  - Removed accidental workspace file `frontend/src/pages/STOCKFLOW.code-workspace`.
+  - Removed redundant template lockfile `frontend/pnpm-lock.yaml`, placeholder `frontend/CLAUDE.md`, Figma boilerplate `frontend/AGENTS.md`, and `frontend/.mise.toml`.
+  - Removed redundant root `assets/` directory (37 SVG files identical to `frontend/public/assets/`).
+  - Removed outdated snapshot `data/stockflow.db` (active DB is root `stockflow.db`) and duplicate copy `Documents/AGENTS.md`.
+  - Removed unused Flet tokens `design/tokens.py`.
+- **Tests Added & Result**:
+  - `pytest -q`: 97/97 passed.
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Built cleanly in 554ms.
+
+
+## Maintenance: Removed .figma Directory and Simplified Vite Configuration
+- **Date**: 24 Nov 2026
+- **What Changed**:
+  - Removed `frontend/.figma/` directory (cloud deploy/preview scripts).
+  - Cleaned `frontend/vite.config.ts` from 452 lines of Figma iframe plugins down to 32 lines of standard Vite + React + Tailwind CSS with `/api` proxy.
+  - Cleaned `frontend/index.html` of `<!-- figma:* -->` template slots.
+  - Renamed package in `frontend/package.json` from `figma-make-app` to `stockflow-frontend`.
+- **Tests Added & Result**:
+  - `pytest -q`: 97/97 passed.
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run build`: Zero config warnings, built in 490ms.

@@ -21,4 +21,5 @@ These decisions were confirmed with the project owner and are treated as fixed u
 | **D15** | The primary target is a desktop PC. Windows is assumed until the team says otherwise. | The store computer is the main device. Flet runs the same Python code as a desktop app. | Confirmed |
 | **D16** | Android is optional and comes after the release. It is not part of the graded build. | Keeps scope small. Core logic is platform neutral, so Android stays possible. | Confirmed |
 | **D17** | `backend/ds/`, `backend/services/` and `backend/db/` stay platform neutral. The database path comes from one function. Barcode input comes from one entry function that accepts USB scanner, typed entry, webcam and simulate-scan. | A later Android build then needs only UI and path changes. | Confirmed |
+| **D18** | Frontend UI framework changed from Flet to React (React 19 + TypeScript + Vite + Tailwind CSS in `frontend/`). | Project owner switched frontend stack from Flet to React (24 Nov 2026). Python `backend/` remains platform-neutral and UI-agnostic. | Confirmed |
 

@@ -1,7 +1,7 @@
 """
 main.py
-StockFlow desktop application entry point.
-Starts the Flet desktop app shell.
+StockFlow backend API entry point for the React desktop/web frontend (Decision D18).
+Starts the local stdlib HTTP API server exposing backend/services/ and SQLite persistence.
 """
 
 import sys
@@ -14,18 +14,14 @@ if str(ROOT_DIR) not in sys.path:
 
 
 def main():
-    print("StockFlow Desktop App Initializing...")
-    try:
-        import flet as ft
-        from frontend.app import main as app_main
+    from backend.api_server import run_server
 
-        is_web = "--web" in sys.argv
-        view_mode = ft.AppView.WEB_BROWSER if is_web else ft.AppView.FLET_APP
-        port = 8550 if is_web else 0
+    port = 8000
+    for arg in sys.argv[1:]:
+        if arg.startswith("--port="):
+            port = int(arg.split("=", 1)[1])
 
-        ft.app(target=app_main, assets_dir="assets", port=port, view=view_mode)
-    except ImportError:
-        print("[Notice] Flet is not yet installed. Install with: pip install -r requirements.txt")
+    run_server(host="127.0.0.1", port=port)
 
 
 if __name__ == "__main__":

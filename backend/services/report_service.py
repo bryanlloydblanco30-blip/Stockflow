@@ -19,6 +19,7 @@ import sqlite3
 
 from backend.ds.prefix_sums import PrefixSums
 from backend.ds.size_k_heap import SizeKHeap
+from backend.models.category import Category
 from backend.services.alert_service import AlertService
 from backend.db.storage import StoreMemoryState
 
