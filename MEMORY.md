@@ -31,7 +31,7 @@
 - Log task completions in `docs/progress_log.md` and keep `MEMORY.md` synchronized.
 
 ## 4. Current State & Next Steps
-- **Active Phase**: Phase 0: Foundations
+- **Active Phase**: Phase 7: Desktop UI
 - **Current Task**: Phase 7: Flet Desktop UI Wiring & Remaining Screens
 - **Last Completed Task**: Phase 6: Benchmarks B1-B6 implemented, executed, and saved with SVG charts (on 24 Nov 2026, 22:13)
 - **Last Test Status**: 96/96 passed
