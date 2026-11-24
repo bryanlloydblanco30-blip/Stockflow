@@ -80,22 +80,32 @@ git clone https://github.com/bryanlloydblanco30-blip/Stockflow.git
 cd Stockflow
 ```
 
-### 3. Start Backend API Server
-The backend requires zero heavy dependencies to run:
-```bash
-# Optional: create & activate a virtualenv
-python -m venv .venv
-# On Windows: .venv\Scripts\activate
-# On Linux/macOS: source .venv/bin/activate
+### 3. Launch the Desktop PC App (Instant Run)
+You can launch the complete standalone desktop application with a single click:
+- Double-click **`StockFlow.bat`** (or silent launcher **`StockFlow.vbs`**) in the root folder.
+- Or directly run the packaged executable at **`dist/StockFlow/StockFlow.exe`**.
 
-# Start the Python API server (loads seeded SQLite db and in-memory DSA indexes)
-python main.py
+> Launches the embedded Python service, serves the built React interface, and opens a dedicated native desktop application window with zero browser URL bars or external dependencies.
+
+### 4. Build the PC Desktop App from Source
+To rebuild the standalone Windows desktop executable at any time:
+```bash
+# Run the automated build script (bundles React dist + PyInstaller .exe)
+build_pc_app.bat
 ```
-> The API server starts on **`http://localhost:8443`**.
-
-### 4. Start Frontend
-In a separate terminal:
+Or manually:
 ```bash
+cd frontend && npm run build && cd ..
+pyinstaller StockFlow.spec --noconfirm
+```
+
+### 5. Development Mode
+For live code development with hot reloading:
+```bash
+# Terminal 1: Backend API & static server
+python main.py
+
+# Terminal 2: Vite React dev server
 cd frontend
 npm install
 npm run dev

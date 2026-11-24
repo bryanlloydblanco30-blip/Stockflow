@@ -15,8 +15,8 @@ ENV/
 # Distribution / Packaging
 dist/
 build/
-*.spec
 *.exe
+!StockFlow.spec
 
 # Local databases & logs
 *.db

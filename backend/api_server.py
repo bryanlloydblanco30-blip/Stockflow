@@ -9,8 +9,10 @@ from __future__ import annotations
 import csv
 import json
 import math
+import mimetypes
 import random
 import sqlite3
+import sys
 import threading
 from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -32,7 +34,15 @@ from backend.services.report_service import ReportService
 from backend.services.restock_service import RestockService
 from backend.services.undo_service import UndoService
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
+# PyInstaller bundle or standard source root
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    ROOT_DIR = Path(sys._MEIPASS)
+else:
+    ROOT_DIR = Path(__file__).resolve().parent.parent
+
+CSV_SEED_PATH = ROOT_DIR / "data" / "inventory.csv"
+BACKUP_DIR = ROOT_DIR / "backups"
+DIST_DIR = ROOT_DIR / "frontend" / "dist"
 CSV_SEED_PATH = ROOT_DIR / "data" / "inventory.csv"
 BACKUP_DIR = ROOT_DIR / "backups"
 
@@ -1078,6 +1088,43 @@ def make_handler(backend: StockFlowBackend):
         def do_OPTIONS(self) -> None:
             self._send_json(200, {"ok": True})
 
+        def _serve_static(self, req_path: str) -> None:
+            if not DIST_DIR.is_dir():
+                self._send_json(404, {"error": "Frontend dist not built. Run 'npm run build' inside frontend/"})
+                return
+            clean_path = req_path.lstrip("/").split("?")[0].split("#")[0]
+            target = (DIST_DIR / clean_path).resolve() if clean_path else (DIST_DIR / "index.html")
+
+            # Prevent directory traversal attacks
+            try:
+                target.relative_to(DIST_DIR.resolve())
+            except ValueError:
+                self._send_json(403, {"error": "Access forbidden"})
+                return
+
+            if clean_path and target.is_file():
+                file_to_send = target
+            else:
+                file_to_send = DIST_DIR / "index.html"
+
+            if not file_to_send.is_file():
+                self._send_json(404, {"error": f"File not found: {req_path}"})
+                return
+
+            ctype, _ = mimetypes.guess_type(str(file_to_send))
+            if not ctype:
+                ctype = "application/octet-stream"
+            if ctype.startswith("text/") or ctype in ("application/javascript", "application/json"):
+                ctype += "; charset=utf-8"
+
+            data = file_to_send.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(data)
+
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
             path = parsed.path.rstrip("/")
@@ -1119,8 +1166,10 @@ def make_handler(backend: StockFlowBackend):
                     self._send_json(200, backend.get_settings())
                 elif path == "/api/backup/list":
                     self._send_json(200, {"backups": backend.list_backups()})
+                elif path.startswith("/api/"):
+                    self._send_json(404, {"error": f"API endpoint not found: {path}"})
                 else:
-                    self._send_json(404, {"error": f"Not found: {path}"})
+                    self._serve_static(parsed.path)
             except ValueError as e:
                 self._send_json(400, {"error": str(e)})
             except Exception as e:
