@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlparse
 
 from backend.db.backup import export_backup, restore_backup
-from backend.db.connection import get_db_path
+from backend.db.connection import get_app_data_dir, get_db_path
 from backend.db.schema import init_schema
 from backend.db.storage import StoreMemoryState, load_all_into_memory
 from backend.services.alert_service import AlertService
@@ -41,10 +41,8 @@ else:
     ROOT_DIR = Path(__file__).resolve().parent.parent
 
 CSV_SEED_PATH = ROOT_DIR / "data" / "inventory.csv"
-BACKUP_DIR = ROOT_DIR / "backups"
+BACKUP_DIR = get_app_data_dir() / "backups"
 DIST_DIR = ROOT_DIR / "frontend" / "dist"
-CSV_SEED_PATH = ROOT_DIR / "data" / "inventory.csv"
-BACKUP_DIR = ROOT_DIR / "backups"
 
 CATEGORY_WARN_DAYS = {
     "Bakery": 7,
@@ -1062,6 +1060,115 @@ class StockFlowBackend:
             return {"restored": filename, "products_loaded": len(self.state.products)}
 
 
+def dispatch_api(
+    backend: StockFlowBackend,
+    method: str,
+    raw_url: str,
+    body: Optional[Dict[str, Any]] = None,
+) -> tuple[int, Any]:
+    """
+    Framework-neutral API dispatcher used by both the pywebview desktop bridge
+    (in-process, zero HTTP) and the dev HTTP server.
+    """
+    parsed = urlparse(raw_url)
+    path = parsed.path.rstrip("/")
+    qs = parse_qs(parsed.query)
+    method = method.upper()
+    payload = body or {}
+
+    try:
+        if method == "GET":
+            if path == "/api/health":
+                return 200, {
+                    "status": "ok",
+                    "products": len(backend.state.products),
+                    "categories": len(backend.state.categories),
+                }
+            if path == "/api/dashboard":
+                return 200, backend.get_dashboard()
+            if path == "/api/categories":
+                return 200, backend.get_categories()
+            if path == "/api/products":
+                return 200, backend.get_products()
+            if path == "/api/products/search":
+                return 200, backend.search_products(qs.get("q", [""])[0])
+            if path == "/api/pos/scan":
+                return 200, backend.scan_barcode(qs.get("barcode", [""])[0])
+            if path == "/api/pos/cart":
+                return 200, backend.get_cart()
+            if path == "/api/alerts":
+                return 200, backend.get_alerts()
+            if path == "/api/restock":
+                return 200, backend.get_restock()
+            if path == "/api/reports":
+                period = qs.get("period", ["Week"])[0]
+                start_s = qs.get("start", [None])[0]
+                end_s = qs.get("end", [None])[0]
+                return 200, backend.get_reports(period=period, start_str=start_s, end_str=end_s)
+            if path == "/api/transactions":
+                return 200, backend.get_transactions(tx_type=qs.get("type", [None])[0])
+            if path == "/api/settings":
+                return 200, backend.get_settings()
+            if path == "/api/backup/list":
+                return 200, {"backups": backend.list_backups()}
+            return 404, {"error": f"API endpoint not found: {path}"}
+
+        if method == "POST":
+            if path == "/api/categories":
+                return 201, backend.create_category(payload)
+            if path == "/api/products":
+                return 201, backend.create_product(payload)
+            if path == "/api/pos/cart":
+                return 200, backend.add_to_cart(payload)
+            if path == "/api/pos/checkout":
+                return 200, backend.checkout(payload)
+            if path == "/api/inventory/receive":
+                return 201, backend.receive_stock(payload)
+            if path == "/api/inventory/adjust":
+                return 200, backend.adjust_stock(payload)
+            if path == "/api/inventory/writeoff":
+                return 200, backend.write_off_expired(payload)
+            if path == "/api/inventory/rotate":
+                return 200, backend.mark_shelf_rotated(payload)
+            if path == "/api/undo":
+                return 200, backend.undo_last()
+            if path == "/api/backup/export":
+                return 201, backend.export_db_backup()
+            if path == "/api/backup/restore":
+                return 200, backend.restore_db_backup(payload)
+            return 404, {"error": f"Not found: {path}"}
+
+        if method == "PUT":
+            if path.startswith("/api/categories/"):
+                cid = int(path.rsplit("/", 1)[-1])
+                return 200, backend.update_category(cid, payload)
+            if path.startswith("/api/pos/cart/"):
+                pid = int(path.rsplit("/", 1)[-1])
+                return 200, backend.update_cart_item(pid, payload)
+            if path == "/api/settings":
+                return 200, backend.update_settings(payload)
+            return 404, {"error": f"Not found: {path}"}
+
+        if method == "DELETE":
+            if path.startswith("/api/categories/"):
+                cid = int(path.rsplit("/", 1)[-1])
+                return 200, backend.delete_category(cid)
+            if path == "/api/pos/cart":
+                return 200, backend.clear_cart()
+            if path.startswith("/api/pos/cart/"):
+                pid = int(path.rsplit("/", 1)[-1])
+                return 200, backend.remove_cart_item(pid)
+            return 404, {"error": f"Not found: {path}"}
+
+        return 405, {"error": f"Method not allowed: {method}"}
+    except ValueError as e:
+        return 400, {"error": str(e)}
+    except sqlite3.IntegrityError as e:
+        return 400, {"error": f"Duplicate or invalid record: {e}"}
+    except Exception as e:
+        return 500, {"error": str(e)}
+
+
 def make_handler(backend: StockFlowBackend):
     class StockFlowHandler(BaseHTTPRequestHandler):
         def log_message(self, format: str, *args: Any) -> None:
@@ -1127,128 +1234,23 @@ def make_handler(backend: StockFlowBackend):
 
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
-            path = parsed.path.rstrip("/")
-            qs = parse_qs(parsed.query)
-            try:
-                if path == "/api/health":
-                    self._send_json(200, {
-                        "status": "ok",
-                        "products": len(backend.state.products),
-                        "categories": len(backend.state.categories),
-                    })
-                elif path == "/api/dashboard":
-                    self._send_json(200, backend.get_dashboard())
-                elif path == "/api/categories":
-                    self._send_json(200, backend.get_categories())
-                elif path == "/api/products":
-                    self._send_json(200, backend.get_products())
-                elif path == "/api/products/search":
-                    q = qs.get("q", [""])[0]
-                    self._send_json(200, backend.search_products(q))
-                elif path == "/api/pos/scan":
-                    barcode = qs.get("barcode", [""])[0]
-                    self._send_json(200, backend.scan_barcode(barcode))
-                elif path == "/api/pos/cart":
-                    self._send_json(200, backend.get_cart())
-                elif path == "/api/alerts":
-                    self._send_json(200, backend.get_alerts())
-                elif path == "/api/restock":
-                    self._send_json(200, backend.get_restock())
-                elif path == "/api/reports":
-                    period = qs.get("period", ["Week"])[0]
-                    start_s = qs.get("start", [None])[0]
-                    end_s = qs.get("end", [None])[0]
-                    self._send_json(200, backend.get_reports(period=period, start_str=start_s, end_str=end_s))
-                elif path == "/api/transactions":
-                    tx_type = qs.get("type", [None])[0]
-                    self._send_json(200, backend.get_transactions(tx_type=tx_type))
-                elif path == "/api/settings":
-                    self._send_json(200, backend.get_settings())
-                elif path == "/api/backup/list":
-                    self._send_json(200, {"backups": backend.list_backups()})
-                elif path.startswith("/api/"):
-                    self._send_json(404, {"error": f"API endpoint not found: {path}"})
-                else:
-                    self._serve_static(parsed.path)
-            except ValueError as e:
-                self._send_json(400, {"error": str(e)})
-            except Exception as e:
-                self._send_json(500, {"error": str(e)})
+            if parsed.path.startswith("/api/"):
+                status, data = dispatch_api(backend, "GET", self.path)
+                self._send_json(status, data)
+            else:
+                self._serve_static(parsed.path)
 
         def do_POST(self) -> None:
-            parsed = urlparse(self.path)
-            path = parsed.path.rstrip("/")
-            try:
-                body = self._read_json()
-                if path == "/api/categories":
-                    self._send_json(201, backend.create_category(body))
-                elif path == "/api/products":
-                    self._send_json(201, backend.create_product(body))
-                elif path == "/api/pos/cart":
-                    self._send_json(200, backend.add_to_cart(body))
-                elif path == "/api/pos/checkout":
-                    self._send_json(200, backend.checkout(body))
-                elif path == "/api/inventory/receive":
-                    self._send_json(201, backend.receive_stock(body))
-                elif path == "/api/inventory/adjust":
-                    self._send_json(200, backend.adjust_stock(body))
-                elif path == "/api/inventory/writeoff":
-                    self._send_json(200, backend.write_off_expired(body))
-                elif path == "/api/inventory/rotate":
-                    self._send_json(200, backend.mark_shelf_rotated(body))
-                elif path == "/api/undo":
-                    self._send_json(200, backend.undo_last())
-                elif path == "/api/backup/export":
-                    self._send_json(201, backend.export_db_backup())
-                elif path == "/api/backup/restore":
-                    self._send_json(200, backend.restore_db_backup(body))
-                else:
-                    self._send_json(404, {"error": f"Not found: {path}"})
-            except ValueError as e:
-                self._send_json(400, {"error": str(e)})
-            except sqlite3.IntegrityError as e:
-                self._send_json(400, {"error": f"Duplicate or invalid record: {e}"})
-            except Exception as e:
-                self._send_json(500, {"error": str(e)})
+            status, data = dispatch_api(backend, "POST", self.path, self._read_json())
+            self._send_json(status, data)
 
         def do_PUT(self) -> None:
-            parsed = urlparse(self.path)
-            path = parsed.path.rstrip("/")
-            try:
-                body = self._read_json()
-                if path.startswith("/api/categories/"):
-                    cid = int(path.rsplit("/", 1)[-1])
-                    self._send_json(200, backend.update_category(cid, body))
-                elif path.startswith("/api/pos/cart/"):
-                    pid = int(path.rsplit("/", 1)[-1])
-                    self._send_json(200, backend.update_cart_item(pid, body))
-                elif path == "/api/settings":
-                    self._send_json(200, backend.update_settings(body))
-                else:
-                    self._send_json(404, {"error": f"Not found: {path}"})
-            except ValueError as e:
-                self._send_json(400, {"error": str(e)})
-            except Exception as e:
-                self._send_json(500, {"error": str(e)})
+            status, data = dispatch_api(backend, "PUT", self.path, self._read_json())
+            self._send_json(status, data)
 
         def do_DELETE(self) -> None:
-            parsed = urlparse(self.path)
-            path = parsed.path.rstrip("/")
-            try:
-                if path.startswith("/api/categories/"):
-                    cid = int(path.rsplit("/", 1)[-1])
-                    self._send_json(200, backend.delete_category(cid))
-                elif path == "/api/pos/cart":
-                    self._send_json(200, backend.clear_cart())
-                elif path.startswith("/api/pos/cart/"):
-                    pid = int(path.rsplit("/", 1)[-1])
-                    self._send_json(200, backend.remove_cart_item(pid))
-                else:
-                    self._send_json(404, {"error": f"Not found: {path}"})
-            except ValueError as e:
-                self._send_json(400, {"error": str(e)})
-            except Exception as e:
-                self._send_json(500, {"error": str(e)})
+            status, data = dispatch_api(backend, "DELETE", self.path)
+            self._send_json(status, data)
 
     return StockFlowHandler
 

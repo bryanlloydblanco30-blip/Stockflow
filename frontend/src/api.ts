@@ -28,7 +28,55 @@ export function formatDate(iso: string | null | undefined): string {
   });
 }
 
+interface PyWebViewBridge {
+  request: (
+    method: string,
+    url: string,
+    bodyJson?: string,
+  ) => Promise<{ status: number; data: unknown }>;
+}
+
+declare global {
+  interface Window {
+    pywebview?: {
+      api?: PyWebViewBridge;
+    };
+  }
+}
+
+async function getPyWebViewApi(): Promise<PyWebViewBridge | null> {
+  if (window.pywebview?.api) {
+    return window.pywebview.api;
+  }
+  if (window.location.protocol !== "file:") {
+    return null;
+  }
+  return new Promise((resolve) => {
+    const onReady = () => {
+      window.removeEventListener("pywebviewready", onReady);
+      resolve(window.pywebview?.api ?? null);
+    };
+    window.addEventListener("pywebviewready", onReady);
+    setTimeout(() => {
+      window.removeEventListener("pywebviewready", onReady);
+      resolve(window.pywebview?.api ?? null);
+    }, 3000);
+  });
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const bridge = await getPyWebViewApi();
+  if (bridge) {
+    const method = (options?.method || "GET").toUpperCase();
+    const bodyJson = typeof options?.body === "string" ? options.body : "";
+    const res = await bridge.request(method, url, bodyJson);
+    if (res.status >= 400) {
+      const errObj = (res.data ?? {}) as { error?: string };
+      throw new Error(errObj.error || `Request failed (${res.status})`);
+    }
+    return res.data as T;
+  }
+
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...options,

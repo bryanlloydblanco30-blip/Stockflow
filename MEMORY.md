@@ -32,6 +32,6 @@
 
 ## 4. Current State & Next Steps
 - **Active Phase**: Phase 7: React UI
-- **Current Task**: Phase 8 Release verification
-- **Last Completed Task**: Build PC Desktop Application (StockFlow.exe) with PyInstaller and embedded React UI (on 24 Nov 2026, 23:49)
-- **Last Test Status**: 97/97 passing
+- **Current Task**: User visual/hardware verification of icons and webcam barcode scan
+- **Last Completed Task**: Fixed Bugs 1-4, removed UI DSA labels, rebuilt StockFlowSetup-1.1.0.exe (on 27 Nov 2026, 23:28)
+- **Last Test Status**: 100 passed (pytest), tsc 0 errors

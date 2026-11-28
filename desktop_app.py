@@ -1,20 +1,21 @@
 """
 desktop_app.py
-StockFlow PC Desktop Application Launcher.
-Starts the embedded StockFlow server and opens a dedicated native desktop application window.
+StockFlow Standalone PC Desktop Application (pywebview + WebView2).
+Runs backend logic and the compiled React UI in a single process with zero HTTP server or ports.
 """
 
 from __future__ import annotations
 
+import ctypes
+import json
+import logging
 import os
-import socket
-import subprocess
 import sys
-import time
-import urllib.request
-import webbrowser
+import traceback
 from pathlib import Path
-from threading import Thread
+from typing import Any, Dict
+
+APP_VERSION = "1.1.0"
 
 # Support PyInstaller frozen environment
 if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -25,91 +26,91 @@ else:
 if str(BUNDLE_DIR) not in sys.path:
     sys.path.insert(0, str(BUNDLE_DIR))
 
-from backend.api_server import run_server
+from backend.api_server import StockFlowBackend, dispatch_api
+from backend.db.connection import get_app_data_dir
 
 
-def find_free_port(preferred: int = 8000) -> int:
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(("127.0.0.1", preferred))
-            return preferred
-    except OSError:
-        pass
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
-
-
-def wait_for_server(url: str, timeout: float = 10.0) -> bool:
-    start = time.time()
-    while time.time() - start < timeout:
-        try:
-            with urllib.request.urlopen(f"{url}/api/health", timeout=1.0) as resp:
-                if resp.status == 200:
-                    return True
-        except Exception:
-            time.sleep(0.1)
-    return False
-
-
-def get_desktop_browser_cmd(url: str) -> list[str] | None:
-    """Finds MS Edge or Chrome to run in dedicated standalone desktop app mode."""
-    candidates = [
-        # Edge on Windows
-        os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"),
-        os.path.expandvars(r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"),
-        os.path.expandvars(r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe"),
-        # Chrome on Windows
-        os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
-        os.path.expandvars(r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"),
-        os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe"),
-    ]
-    for exe in candidates:
-        if exe and os.path.isfile(exe):
-            return [
-                exe,
-                f"--app={url}",
-                "--window-size=1280,820",
-                "--app-id=StockFlow",
-            ]
-    return None
-
-
-def main():
-    port = find_free_port(8000)
-    base_url = f"http://127.0.0.1:{port}"
-
-    # Start backend server in a background daemon thread
-    server_thread = Thread(
-        target=run_server,
-        kwargs={"host": "127.0.0.1", "port": port},
-        daemon=True,
+def _setup_logging(log_path: Path) -> logging.Logger:
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(
+        filename=str(log_path),
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
     )
-    server_thread.start()
+    return logging.getLogger("stockflow")
 
-    if not wait_for_server(base_url, timeout=10.0):
-        print(f"Error: StockFlow server failed to start on {base_url}", file=sys.stderr)
-        sys.exit(1)
 
-    print(f"StockFlow desktop server is running at {base_url}")
-
-    # Launch desktop application window
-    app_cmd = get_desktop_browser_cmd(base_url)
-    if app_cmd:
+def _show_error_dialog(title: str, message: str) -> None:
+    if os.name == "nt":
         try:
-            proc = subprocess.Popen(app_cmd)
-            # Wait for user to close the desktop window
-            proc.wait()
-            sys.exit(0)
-        except Exception as e:
-            print(f"Could not open native desktop window: {e}. Falling back to default browser.", file=sys.stderr)
+            ctypes.windll.user32.MessageBoxW(0, message, title, 0x10)
+            return
+        except Exception:
+            pass
+    print(f"{title}: {message}", file=sys.stderr)
 
-    webbrowser.open(base_url)
+
+class PyWebViewApi:
+    """In-process JS-to-Python bridge exposed as window.pywebview.api."""
+
+    def __init__(self, backend: StockFlowBackend) -> None:
+        self._backend = backend
+
+    def request(self, method: str, url: str, body_json: str = "") -> Dict[str, Any]:
+        body: Dict[str, Any] | None = None
+        if body_json:
+            body = json.loads(body_json)
+        status, data = dispatch_api(self._backend, method, url, body)
+        return {"status": status, "data": data}
+
+    def get_app_info(self) -> Dict[str, str]:
+        return {
+            "version": APP_VERSION,
+            "db_path": str(self._backend.db_path),
+        }
+
+
+def main() -> None:
+    app_data_dir = get_app_data_dir()
+    log_path = app_data_dir / "stockflow.log"
+    logger = _setup_logging(log_path)
+
     try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
+        import webview
+
+        dist_index = BUNDLE_DIR / "frontend" / "dist" / "index.html"
+        if not dist_index.is_file():
+            raise FileNotFoundError(
+                f"Built UI not found at {dist_index}. Run 'npm run build' in frontend/ first."
+            )
+
+        logger.info("Starting StockFlow v%s", APP_VERSION)
+        backend = StockFlowBackend(auto_seed=False)
+        logger.info("Database ready at %s (%d products)", backend.db_path, len(backend.state.products))
+
+        api = PyWebViewApi(backend)
+        window = webview.create_window(
+            title=f"StockFlow v{APP_VERSION}",
+            url=dist_index.as_uri(),
+            js_api=api,
+            width=1280,
+            height=820,
+            min_size=(960, 640),
+        )
+        webview.start(
+            gui="edgechromium",
+            http_server=False,
+            private_mode=False,
+            storage_path=str(app_data_dir / "webview_profile"),
+        )
+        logger.info("StockFlow window closed cleanly.")
+    except Exception as exc:
+        logger.error("Startup/runtime failure:\n%s", traceback.format_exc())
+        _show_error_dialog(
+            f"StockFlow v{APP_VERSION} - Startup Error",
+            f"StockFlow could not start:\n\n{exc}\n\nDetails were written to:\n{log_path}",
+        )
+        sys.exit(1)
 
 
 if __name__ == "__main__":

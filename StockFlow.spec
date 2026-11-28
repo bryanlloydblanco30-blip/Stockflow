@@ -6,15 +6,16 @@ ROOT = Path.cwd()
 
 datas = [
     (str(ROOT / "frontend" / "dist"), "frontend/dist"),
-    (str(ROOT / "data"), "data"),
-    (str(ROOT / "stockflow.db"), "."),
 ]
 
 hidden_imports = [
     "sqlite3",
-    "mimetypes",
+    "logging",
     "urllib.parse",
-    "http.server",
+    "webview",
+    "webview.platforms.edgechromium",
+    "clr_loader",
+    "pythonnet",
     "backend",
     "backend.api_server",
     "backend.db",
@@ -85,7 +86,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=str(ROOT / "frontend" / "public" / "favicon.png") if (ROOT / "frontend" / "public" / "favicon.png").is_file() else None,
+    icon=str(ROOT / "installer" / "app_icon.ico") if (ROOT / "installer" / "app_icon.ico").is_file() else None,
 )
 
 coll = COLLECT(

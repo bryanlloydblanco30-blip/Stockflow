@@ -17,10 +17,12 @@ dist/
 build/
 *.exe
 !StockFlow.spec
+!StockFlow-OneFile.spec
 
 # Local databases & logs
 *.db
 *.db-shm
 *.db-wal
 *.sqlite3
+backups/
 

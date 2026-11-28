@@ -33,9 +33,10 @@ When two sources disagree, the higher one wins:
 
 ### Structure
 - **Frontend / Backend Separation**:
-  - `frontend/` (Flet UI screens & components) calls `backend/services/`, which calls `backend/ds/`, `backend/models/`, `backend/db/`. A layer never calls upward. No business rule lives in `frontend/`.
-  - `backend/` (`ds/`, `services/`, `db/`, `models/`) contains **no Flet imports**. It must run under pytest with no UI.
-  - `backend/` is **platform neutral**: no Windows-only or Android-only calls. The database file location comes from one function in `backend/db/` so each platform can choose its own folder (D17).
+  - `frontend/` (React 19 + TypeScript + Vite + Tailwind CSS per Decision D18) calls `window.pywebview.api` in the packaged desktop app (or `backend/api_server.py` during Vite dev mode), which calls `backend/services/`, which calls `backend/ds/`, `backend/models/`, `backend/db/`. A layer never calls upward. No business rule lives in `frontend/`.
+  - `backend/` (`ds/`, `services/`, `db/`, `models/`) contains **no UI imports**. It must run under pytest with no UI.
+  - `backend/` is **platform neutral**: no Windows-only or Android-only calls. The database file location comes from one function (`get_db_path()` in `backend/db/connection.py`) resolving to the per-user app-data directory (`%APPDATA%/StockFlow/stockflow.db` on Windows) with an idempotent one-time legacy migration (D17).
+  - Desktop packaging uses `desktop_app.py` (`pywebview` + `frontend/dist/index.html` via `file://` with zero HTTP server) + `StockFlow.spec` (PyInstaller) + `installer/StockFlowSetup.iss` (Inno Setup per-user `StockFlowSetup-1.0.0.exe`).
 
 ### Data Structures
 - Linked list, min-heap, max-heap, BST, trie, stack, prefix sums and the size-k heap are **written from scratch** in `ds/`.

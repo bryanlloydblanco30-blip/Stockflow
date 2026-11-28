@@ -5,6 +5,7 @@ import path from 'node:path'
 
 // Standard Vite config for StockFlow Desktop/Web UI
 export default defineConfig({
+  base: './',
   plugins: [
     react(),
     tailwindcss(),

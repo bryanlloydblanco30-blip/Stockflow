@@ -102,11 +102,11 @@ export default function StockPage({ navigate }: { navigate: Navigate }) {
       setFormCost("");
       setFormPrice("");
       setFormExpiry("");
-      setBanner("✓ Product registered and indexed in BST & Trie.");
+      setBanner("✓ Product registered and ready for sale.");
       setTimeout(() => setBanner(null), 3500);
       await loadData();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to register product.");
+      setError(err instanceof Error ? err.message : "Failed to register product.");
     }
   };
 
@@ -137,7 +137,7 @@ export default function StockPage({ navigate }: { navigate: Navigate }) {
       setTimeout(() => setBanner(null), 4000);
       await loadData();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to receive stock.");
+      setError(err instanceof Error ? err.message : "Failed to receive stock.");
     }
   };
 
@@ -147,7 +147,7 @@ export default function StockPage({ navigate }: { navigate: Navigate }) {
         active="stock"
         page="stock"
         title="Stock"
-        subtitle="Manage products, batches, and FEFO availability"
+        subtitle="Manage products, batches, and stock availability"
         navigate={navigate}
         action={
           <button className="primary blue" onClick={() => setIsRegisterOpen(true)}>
@@ -288,7 +288,7 @@ export default function StockPage({ navigate }: { navigate: Navigate }) {
 
         <div className="page-closing">
           <strong>Every shelf, a little more organized.</strong>
-          <span>Click any product to inspect its FEFO batches, receive stock, or adjust counts.</span>
+          <span>Click any product to inspect its batches, receive stock, or adjust counts.</span>
         </div>
       </Shell>
 
@@ -391,7 +391,7 @@ export default function StockPage({ navigate }: { navigate: Navigate }) {
             <div className="modal-header">
               <div>
                 <h2>Receive Stock · {receiveTarget.name}</h2>
-                <p>Add a new delivery batch into the product's FEFO Min-Heap.</p>
+                <p>Add a new delivery batch to this product's inventory.</p>
               </div>
               <button type="button" className="modal-close-btn" onClick={() => setReceiveTarget(null)}>
                 ✕
@@ -477,7 +477,7 @@ export default function StockPage({ navigate }: { navigate: Navigate }) {
             <div className="modal-header">
               <div>
                 <h2>Register Product</h2>
-                <p>Add a new product to SQLite, BST barcode index, and Trie search.</p>
+                <p>Add a new product to your store catalog.</p>
               </div>
               <button type="button" className="modal-close-btn" onClick={() => setIsRegisterOpen(false)}>
                 ✕

@@ -119,7 +119,7 @@ class TestPhase5RestockAndReports(unittest.TestCase):
         - Inventory Value at Cost: (14 * 10.0) + (8 * 30.0) + (6 * 5.0) = 140 + 240 + 30 = 410.0
         - Voided sale (Sale 2) strictly excluded from all numbers!
         """
-        report = self.report_service.get_financial_summary()
+        report = self.report_service.get_financial_summary(today=self.today)
         self.assertAlmostEqual(report["revenue"], 240.0, places=2)
         self.assertAlmostEqual(report["cogs"], 130.0, places=2)
         self.assertAlmostEqual(report["gross_profit"], 110.0, places=2)

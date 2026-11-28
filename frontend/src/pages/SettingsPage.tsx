@@ -267,7 +267,7 @@ export default function SettingsPage({ navigate }: { navigate: Navigate }) {
                   <td><strong>{c.name}</strong></td>
                   <td>
                     <span className={`badge ${c.tracks_expiry ? "green" : "amber"}`}>
-                      {c.tracks_expiry ? "Yes (FEFO)" : "No (FIFO)"}
+                      {c.tracks_expiry ? "Yes (earliest expiry first)" : "No (oldest received first)"}
                     </span>
                   </td>
                   <td>{c.tracks_expiry ? `${c.warn_days} days` : "—"}</td>

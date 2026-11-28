@@ -13,7 +13,11 @@ export default function StartingPage({ navigate }: { navigate: Navigate }) {
     <main className="starting-page">
       <section className="welcome-copy">
         <div className="welcome-brand">
-          <img src="/assets/ea9fe.svg" alt="" />
+          <img
+            src="./assets/app-logo.png"
+            alt="StockFlow logo"
+            style={{ borderRadius: "12px", objectFit: "cover" }}
+          />
           <span>StockFlow</span>
         </div>
         <h1>
@@ -22,7 +26,7 @@ export default function StartingPage({ navigate }: { navigate: Navigate }) {
         </h1>
         <p>Everything you need for a good day of shopkeeping.</p>
         <div className="hero-illustration">
-          <img src="/assets/051ce.svg" alt="A friendly illustrated corner shop" />
+          <img src="./assets/051ce.svg" alt="A friendly illustrated corner shop" />
         </div>
         <h2>Small shop. Big possibilities.</h2>
         <p>Sell, restock, and keep your business growing — all in one place.</p>
@@ -37,7 +41,7 @@ export default function StartingPage({ navigate }: { navigate: Navigate }) {
               key={item.page}
               onClick={() => navigate(item.page)}
             >
-              <img src={`/assets/${item.icon}`} alt="" />
+              <img src={`./assets/${item.icon}`} alt="" />
               <span>{item.label}</span>
             </button>
           ))}

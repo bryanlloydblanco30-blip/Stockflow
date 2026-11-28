@@ -56,7 +56,7 @@ export default function AlertsPage({ navigate }: { navigate: Navigate }) {
       active="stock"
       page="alerts"
       title="Alerts, Rotation & Write-Offs"
-      subtitle="Near-expiry batches, FEFO shelf-rotation checklist, and expired write-offs"
+      subtitle="Near-expiry batches, shelf-rotation checklist, and expired write-offs"
       navigate={navigate}
       action={
         <button className="purple-pill" onClick={() => navigate("stock")}>
@@ -109,7 +109,7 @@ export default function AlertsPage({ navigate }: { navigate: Navigate }) {
       <section className="panel table-panel">
         <div className="table-scroll">
           {loading ? (
-            <p style={{ padding: "24px", color: "#69756b" }}>Scanning product Min-Heaps…</p>
+            <p style={{ padding: "24px", color: "#69756b" }}>Scanning expiring batches…</p>
           ) : tab === "near" ? (
             nearList.length === 0 ? (
               <p style={{ padding: "24px", color: "#245c45", fontWeight: 600 }}>

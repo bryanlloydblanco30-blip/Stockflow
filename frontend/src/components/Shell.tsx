@@ -1,6 +1,6 @@
 import type { Navigate, Page } from "../types";
 
-const assets = "/assets";
+const assets = "./assets";
 
 const navItems: { page: Page; label: string; icon: string; activeIcon: string }[] = [
   { page: "home", label: "Home", icon: "af3ce.svg", activeIcon: "229d1.svg" },
@@ -44,7 +44,11 @@ export default function Shell({
     <div className="app-shell">
       <aside className="sidebar">
         <button className="brand" onClick={() => navigate("home")} aria-label="Go home">
-          <img src={`${assets}/18451.svg`} alt="" />
+          <img
+            src={`${assets}/app-logo.png`}
+            alt="StockFlow logo"
+            style={{ borderRadius: "10px", objectFit: "cover" }}
+          />
           <span>
             <strong>StockFlow</strong>
             <small>POINT OF SALE</small>

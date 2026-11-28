@@ -11,6 +11,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 
 interface BarcodeScannerProps {
   onDetected: (barcode: string) => void;
@@ -23,7 +24,14 @@ export default function BarcodeScanner({ onDetected, onClose }: BarcodeScannerPr
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const scanTimerRef = useRef<number | null>(null);
+  const detectorTimerRef = useRef<number | null>(null);
+  const detectedRef = useRef(false);
+  const lastCandidateRef = useRef<{ code: string; hits: number; ts: number }>({
+    code: "",
+    hits: 0,
+    ts: 0,
+  });
 
   const [state, setState] = useState<ScanState>("idle");
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -32,14 +40,65 @@ export default function BarcodeScanner({ onDetected, onClose }: BarcodeScannerPr
   const [selectedCamera, setSelectedCamera] = useState<string>("");
   const [scanCount, setScanCount] = useState(0);
 
+  // ── Stop scanner ───────────────────────────────────────────────────
+  const stopScanner = useCallback(() => {
+    if (scanTimerRef.current !== null) {
+      window.clearInterval(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+    if (detectorTimerRef.current !== null) {
+      window.clearInterval(detectorTimerRef.current);
+      detectorTimerRef.current = null;
+    }
+    try {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    } catch {}
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    streamRef.current = null;
+    readerRef.current = null;
+  }, []);
+
+  const handleCodeFound = useCallback(
+    (rawCode: string, immediate = false) => {
+      const code = rawCode.trim();
+      if (detectedRef.current || code.length < 4) return;
+
+      if (!immediate) {
+        const now = Date.now();
+        const prev = lastCandidateRef.current;
+        // Require 2 matching ZXing reads within 1800ms to prevent single-frame false positives
+        if (prev.code === code && now - prev.ts <= 1800) {
+          prev.hits += 1;
+          prev.ts = now;
+        } else {
+          lastCandidateRef.current = { code, hits: 1, ts: now };
+          return;
+        }
+        if (lastCandidateRef.current.hits < 2) return;
+      }
+
+      detectedRef.current = true;
+      setLastDetected(code);
+      setState("detected");
+      setScanCount((c) => c + 1);
+      setTimeout(() => {
+        stopScanner();
+        onDetected(code);
+      }, 300);
+    },
+    [onDetected, stopScanner]
+  );
+
   // ── Enumerate cameras ──────────────────────────────────────────────
   useEffect(() => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
     navigator.mediaDevices
       .enumerateDevices()
       .then((devices) => {
         const videoInputs = devices.filter((d) => d.kind === "videoinput");
         setCameras(videoInputs);
-        // Prefer rear camera on mobile, first camera otherwise
         const rear = videoInputs.find((d) =>
           /back|rear|environment/i.test(d.label)
         );
@@ -52,96 +111,206 @@ export default function BarcodeScanner({ onDetected, onClose }: BarcodeScannerPr
 
   // ── Start scanner ──────────────────────────────────────────────────
   const startScanner = useCallback(async () => {
+    stopScanner();
+    detectedRef.current = false;
+    lastCandidateRef.current = { code: "", hits: 0, ts: 0 };
     setState("requesting");
     setErrorMsg("");
 
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setErrorMsg("Camera API is unavailable in this window.");
+      setState("error");
+      return;
+    }
+
     try {
-      const reader = new BrowserMultiFormatReader();
+      const hints = new Map();
+      // TRY_HARDER scans rotated/tilted 1D barcodes; POSSIBLE_FORMATS stays checksum-protected
+      hints.set(DecodeHintType.TRY_HARDER, true);
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.QR_CODE,
+      ]);
+      const reader = new BrowserMultiFormatReader(hints);
       readerRef.current = reader;
 
-      const constraints: MediaStreamConstraints = {
-        video: selectedCamera
-          ? { deviceId: { exact: selectedCamera } }
-          : { facingMode: "environment" },
-      };
+      const videoConstraints: MediaTrackConstraints = selectedCamera
+        ? {
+            deviceId: { exact: selectedCamera },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30 },
+          }
+        : {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30 },
+          };
 
-      // Enumerate again now that we have permission
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: selectedCamera ? { deviceId: { exact: selectedCamera } } : true,
+        });
+      }
+      streamRef.current = stream;
+
+      // Enable continuous autofocus if the webcam supports it
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack?.applyConstraints) {
+        try {
+          await videoTrack.applyConstraints({
+            advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet],
+          });
+        } catch {
+          // Many desktop webcams do not expose focusMode; safe to ignore
+        }
+      }
+
+      // Enumerate again now that we have permission so labels are populated
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((d) => d.kind === "videoinput");
       if (videoInputs.length) {
         setCameras(videoInputs);
         if (!selectedCamera) {
+          const activeId = videoTrack?.getSettings()?.deviceId;
           const rear = videoInputs.find((d) =>
             /back|rear|environment/i.test(d.label)
           );
-          setSelectedCamera((rear ?? videoInputs[0])?.deviceId ?? "");
+          setSelectedCamera(activeId || (rear ?? videoInputs[0])?.deviceId || "");
         }
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+      const video = videoRef.current;
+      if (!video) {
+        stopScanner();
+        return;
       }
 
+      video.srcObject = stream;
+      await video.play();
       setState("scanning");
 
-      // ZXing continuous decode from stream
-      const deviceId =
-        stream.getVideoTracks()[0]?.getSettings()?.deviceId ?? selectedCamera;
+      // Offscreen canvases for cropped center-box ROI + full-frame fallback
+      const roiCanvas = document.createElement("canvas");
+      const roiCtx = roiCanvas.getContext("2d", { willReadFrequently: true });
+      const fullCanvas = document.createElement("canvas");
+      const fullCtx = fullCanvas.getContext("2d", { willReadFrequently: true });
 
-      const controls = await reader.decodeFromVideoDevice(
-        deviceId || undefined,
-        videoRef.current!,
-        (result, err) => {
+      let tick = 0;
+      scanTimerRef.current = window.setInterval(() => {
+        if (detectedRef.current || !videoRef.current || videoRef.current.readyState < 2) {
+          return;
+        }
+        const vw = videoRef.current.videoWidth;
+        const vh = videoRef.current.videoHeight;
+        if (!vw || !vh || !roiCtx) return;
+
+        tick += 1;
+
+        // 1. Center ROI strip (matches visual scan frame: 76% width x 52% height)
+        const sx = Math.round(vw * 0.12);
+        const sy = Math.round(vh * 0.24);
+        const sw = Math.round(vw * 0.76);
+        const sh = Math.round(vh * 0.52);
+
+        if (roiCanvas.width !== sw || roiCanvas.height !== sh) {
+          roiCanvas.width = sw;
+          roiCanvas.height = sh;
+        }
+
+        // Draw natural video frame (no artificial contrast filter that creates fake bars)
+        roiCtx.drawImage(videoRef.current, sx, sy, sw, sh, 0, 0, sw, sh);
+
+        try {
+          const result = reader.decodeFromCanvas(roiCanvas);
           if (result) {
-            const code = result.getText();
-            setLastDetected(code);
-            setState("detected");
-            setScanCount((c) => c + 1);
-            // Auto-confirm after a short flash delay
-            setTimeout(() => {
-              onDetected(code);
-              stopScanner();
-            }, 600);
-          } else if (err && err.name !== "NotFoundException") {
-            // NotFoundException is normal when frame has no barcode yet
-            console.warn("[BarcodeScanner]", err);
+            handleCodeFound(result.getText());
+            return;
+          }
+        } catch {
+          // NotFoundException on frame is expected
+        }
+
+        // 2. Full-frame fallback every 4th tick in case barcode is outside center box
+        if (tick % 4 === 0 && fullCtx) {
+          if (fullCanvas.width !== vw || fullCanvas.height !== vh) {
+            fullCanvas.width = vw;
+            fullCanvas.height = vh;
+          }
+          fullCtx.drawImage(videoRef.current, 0, 0, vw, vh);
+          try {
+            const result = reader.decodeFromCanvas(fullCanvas);
+            if (result) {
+              handleCodeFound(result.getText());
+            }
+          } catch {
+            // NotFoundException on frame is expected
           }
         }
-      );
+      }, 120);
 
-      controlsRef.current = controls as unknown as { stop: () => void };
+      // Secondary pass with native BarcodeDetector (Chromium/Edge/WebView2)
+      const BarcodeDetectorCtor = (window as unknown as {
+        BarcodeDetector?: new (opts?: { formats?: string[] }) => {
+          detect: (src: HTMLVideoElement) => Promise<{ rawValue: string }[]>;
+        };
+      }).BarcodeDetector;
+      if (BarcodeDetectorCtor) {
+        try {
+          const detector = new BarcodeDetectorCtor({
+            formats: ["upc_a", "upc_e", "ean_13", "ean_8", "code_128", "qr_code"],
+          });
+          detectorTimerRef.current = window.setInterval(async () => {
+            if (detectedRef.current || !videoRef.current || videoRef.current.readyState < 2) return;
+            try {
+              const hits = await detector.detect(videoRef.current);
+              if (hits.length > 0 && hits[0].rawValue) {
+                handleCodeFound(hits[0].rawValue, true);
+              }
+            } catch {
+              // Ignore transient frame errors
+            }
+          }, 160);
+        } catch {
+          // Ignore if BarcodeDetector formats unsupported
+        }
+      }
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Camera access failed.";
-      if (message.toLowerCase().includes("permission")) {
+      stopScanner();
+      const errName = err instanceof Error ? err.name : "";
+      const message = err instanceof Error ? err.message : "Camera access failed.";
+      if (
+        errName === "NotAllowedError" ||
+        errName === "PermissionDeniedError" ||
+        message.toLowerCase().includes("permission")
+      ) {
         setErrorMsg(
-          "Camera permission was denied. Please allow camera access in your browser settings and try again."
+          "Camera access was denied. Allow camera access when prompted, or enable it in Windows Settings → Privacy & security → Camera."
         );
-      } else if (message.toLowerCase().includes("overconstrained")) {
+      } else if (errName === "NotFoundError" || errName === "DevicesNotFoundError") {
+        setErrorMsg(
+          "No camera was found. Connect a webcam or check Windows Settings → Privacy & security → Camera."
+        );
+      } else if (errName === "NotReadableError" || errName === "TrackStartError") {
+        setErrorMsg(
+          "Camera is already in use by another app. Close other camera apps and try again."
+        );
+      } else if (errName === "OverconstrainedError" || message.toLowerCase().includes("overconstrained")) {
         setErrorMsg("Selected camera is unavailable. Try switching to another.");
       } else {
         setErrorMsg(`Camera error: ${message}`);
       }
       setState("error");
     }
-  }, [selectedCamera, onDetected]);
-
-  // ── Stop scanner ───────────────────────────────────────────────────
-  const stopScanner = useCallback(() => {
-    try {
-      controlsRef.current?.stop();
-    } catch {}
-    try {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-    } catch {}
-    streamRef.current = null;
-    readerRef.current = null;
-    controlsRef.current = null;
-  }, []);
+  }, [selectedCamera, handleCodeFound, stopScanner]);
 
   // Auto-start when component mounts
   useEffect(() => {

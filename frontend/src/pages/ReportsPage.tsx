@@ -48,7 +48,7 @@ export default function ReportsPage({ navigate }: { navigate: Navigate }) {
         active="reports"
         page="reports"
         title="Reports"
-        subtitle="Financial performance powered by Prefix Sums & Size-k Heap (voids excluded)"
+        subtitle="Financial performance summary (voided sales excluded)"
         navigate={navigate}
         action={
           <button className="primary blue" onClick={() => setActiveSubReport("inventory")}>
@@ -77,7 +77,7 @@ export default function ReportsPage({ navigate }: { navigate: Navigate }) {
 
         <div className="stat-grid report-stats">
           <article className="stat white">
-            <span>Revenue (Prefix Sums)</span>
+            <span>Revenue</span>
             <strong>{loading ? "…" : formatPHP(summary?.revenue ?? 0)}</strong>
             <small style={{ color: "#69756b", marginTop: "4px" }}>Net sales excluding voids</small>
           </article>
@@ -151,7 +151,7 @@ export default function ReportsPage({ navigate }: { navigate: Navigate }) {
             <div className="modal-header">
               <div>
                 <h2>
-                  {activeSubReport === "sellers" && "Best and Worst Sellers (Size-k Heap)"}
+                  {activeSubReport === "sellers" && "Best and Worst Sellers"}
                   {activeSubReport === "profit" && "Profit per Item Report"}
                   {activeSubReport === "spoilage" && "Spoilage & Expiry Losses"}
                   {activeSubReport === "inventory" && "Total Sellable Inventory Valuation"}

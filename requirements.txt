@@ -2,6 +2,8 @@
 # Never upgrade without explicit human approval.
 
 flet==0.28.3
+pywebview==6.2.1
+pyinstaller==6.20.0
 pytest==8.4.2
 Faker==37.1.0
 

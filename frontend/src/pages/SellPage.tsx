@@ -85,7 +85,7 @@ export default function SellPage({ navigate }: { navigate: Navigate }) {
       setCart(res.cart);
       showFeedback({
         type: "ok",
-        msg: `Added "${res.product?.name ?? code}" to cart (FEFO ready)`,
+        msg: `Added "${res.product?.name ?? code}" to cart`,
       });
       setBarcodeInput("");
       barcodeRef.current?.focus();
@@ -342,11 +342,11 @@ export default function SellPage({ navigate }: { navigate: Navigate }) {
             </section>
             <section className="green-message">
               <strong>
-                FEFO deduction active,
+                Sorted by earliest expiry,
                 <br />
                 expired stock blocked.
               </strong>
-              <span>Powered by custom BST, Linked List & Min-Heap.</span>
+              <span>Older stock sells first automatically.</span>
             </section>
           </aside>
         </div>
@@ -362,7 +362,7 @@ export default function SellPage({ navigate }: { navigate: Navigate }) {
             <div className="modal-header">
               <div>
                 <h2>Checkout (Cash Only)</h2>
-                <p>Confirm cash tendered to deduct stock via FEFO and complete sale.</p>
+                <p>Confirm cash tendered to deduct stock and complete sale.</p>
               </div>
               <button
                 type="button"

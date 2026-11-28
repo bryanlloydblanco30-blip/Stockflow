@@ -80,24 +80,30 @@ git clone https://github.com/bryanlloydblanco30-blip/Stockflow.git
 cd Stockflow
 ```
 
-### 3. Launch the Desktop PC App (Instant Run)
-You can launch the complete standalone desktop application with a single click:
-- Double-click **`StockFlow.bat`** (or silent launcher **`StockFlow.vbs`**) in the root folder.
-- Or directly run the packaged executable at **`dist/StockFlow/StockFlow.exe`**.
+### 3. How to Install & Run (End Users — Windows)
+1. Download **`StockFlowSetup-1.0.0.exe`** (from `dist/installer/`).
+2. Double-click `StockFlowSetup-1.0.0.exe` (no administrator rights or Python/Node.js required; if Microsoft Edge WebView2 Runtime is missing, the installer downloads and installs it automatically).
+3. **Windows SmartScreen Notice:** Because the installer is not code-signed with a commercial certificate, Windows Defender SmartScreen may show *"Windows protected your PC"*. Click **More info** → **Run anyway** to proceed.
+4. Launch **StockFlow** from the **Start Menu** or Desktop shortcut.
+5. **Upgrading / Uninstalling:** Installing a newer version upgrades in place and preserves your data. Uninstalling removes only the application files, never your database.
 
-> Launches the embedded Python service, serves the built React interface, and opens a dedicated native desktop application window with zero browser URL bars or external dependencies.
+### 💾 Local Device Storage & Migration
+- All active data is stored locally in your device's application data folder:
+  - **Windows:** `%APPDATA%\StockFlow\stockflow.db` (backups in `%APPDATA%\StockFlow\backups\`, startup/error log in `%APPDATA%\StockFlow\stockflow.log`)
+  - **macOS:** `~/Library/Application Support/StockFlow/stockflow.db`
+  - **Linux:** `~/.local/share/StockFlow/stockflow.db`
+- New installations start with an empty database.
+- On first launch on an existing machine, if the app-data database does not exist yet and a legacy `stockflow.db` is found in the project or executable directory, StockFlow performs a **safe, idempotent one-time migration** using SQLite's backup API so existing records are preserved without overwriting.
 
-### 4. Build the PC Desktop App from Source
-To rebuild the standalone Windows desktop executable at any time:
-```bash
-# Run the automated build script (bundles React dist + PyInstaller .exe)
-build_pc_app.bat
-```
-Or manually:
+### 4. Build the PC Desktop App & Installer from Source
+To rebuild the standalone `pywebview` executable and Inno Setup installer:
 ```bash
 cd frontend && npm run build && cd ..
 pyinstaller StockFlow.spec --noconfirm
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\StockFlowSetup.iss
 ```
+> Produces `dist\StockFlow\StockFlow.exe` and `dist\installer\StockFlowSetup-1.0.0.exe`.
+> Internally, `desktop_app.py` loads `frontend/dist/index.html` directly inside a native WebView2 window (`pywebview`) and communicates with Python over `window.pywebview.api` with zero HTTP server or local ports.
 
 ### 5. Development Mode
 For live code development with hot reloading:
@@ -163,6 +169,24 @@ Stockflow/
 - **Atomic Undo**: Rolling back the last transaction restores exact quantities to their original batch IDs.
 - **Reporting Invariance**: Historic sale lines freeze cost and price at the exact moment of transaction.
 - **Currency & Formatting**: Designed for Philippine Peso (`PHP 1,250.00`) and standard retail store operation.
+
+---
+
+## 🗺️ DSA Usage Map (UI Plain-Language Mapping)
+
+All user-facing DSA terminology was replaced with plain-language storekeeper copy while keeping the underlying custom `backend/ds/` structures unchanged:
+
+| Feature / Screen | Backend Data Structure | Plain-Language UI Copy |
+| :--- | :--- | :--- |
+| Barcode scan & lookup (`SellPage`, `StockPage`) | `BST` (`backend/ds/bst.py`) | Barcode search / ready for sale |
+| Product name autocomplete (`StockPage`) | `Trie` (`backend/ds/trie.py`) | Product catalog search |
+| POS cart items (`SellPage`) | `LinkedList` (`backend/ds/linked_list.py`) | Cart items list |
+| Earliest-expiry deduction & alerts (`SellPage`, `StockPage`, `AlertsPage`) | `MinHeap` (`backend/ds/min_heap.py`) | Sorted by earliest expiry / Scanning expiring batches |
+| 1-level transaction void (`HistoryPage`) | `Stack` (`backend/ds/stack.py`) | Undo available only on the latest transaction |
+| Restock priority queue (`RestockPage`) | `MaxHeap` (`backend/ds/max_heap.py`) | Priority Queue (ranked by days of cover & selling speed) |
+| Daily revenue & COGS totals (`ReportsPage`) | `PrefixSums` (`backend/ds/prefix_sums.py`) | Revenue |
+| Fast/slow movers & top/bottom sellers (`RestockPage`, `ReportsPage`) | `SizeKHeap` (`backend/ds/size_k_heap.py`) | Fast Movers / Slow Movers / Best and Worst Sellers |
+| Category tracking labels (`SettingsPage`) | `MinHeap` (FEFO vs FIFO key) | Yes (earliest expiry first) / No (oldest received first) |
 
 ---
 

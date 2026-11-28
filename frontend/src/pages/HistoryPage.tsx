@@ -123,7 +123,7 @@ export default function HistoryPage({ navigate }: { navigate: Navigate }) {
           )}
         </div>
       </section>
-      <p className="history-note">Undo is available only on the latest transaction (1-level Stack, Decision D2).</p>
+      <p className="history-note">Undo is available only on the latest transaction.</p>
     </Shell>
   );
 }

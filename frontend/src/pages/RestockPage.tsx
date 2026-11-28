@@ -14,6 +14,7 @@ export default function RestockPage({ navigate }: { navigate: Navigate }) {
     { batch_id: number; expiry_date: string; units: number; level: string }[]
   >([]);
   const [banner, setBanner] = useState<string | null>(null);
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
 
   const loadRestock = useCallback(async () => {
     setLoading(true);
@@ -61,11 +62,13 @@ export default function RestockPage({ navigate }: { navigate: Navigate }) {
       } else {
         setSelectedItem(null);
       }
+      setErrorBanner(null);
       setBanner(`✓ Received +${restockQty} units of "${selectedItem.product_name}".`);
       setTimeout(() => setBanner(null), 4000);
       await loadRestock();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to receive stock.");
+      setErrorBanner(err instanceof Error ? err.message : "Failed to receive stock.");
+      setTimeout(() => setErrorBanner(null), 5000);
     }
   };
 
@@ -75,7 +78,7 @@ export default function RestockPage({ navigate }: { navigate: Navigate }) {
         active="restock"
         page="restock"
         title="Restock"
-        subtitle="Max-Heap priority queue ranked by days of cover & 14-day selling speed"
+        subtitle="Prioritized by days of cover and 14-day selling speed"
         navigate={navigate}
         action={
           <button
@@ -90,16 +93,16 @@ export default function RestockPage({ navigate }: { navigate: Navigate }) {
         <div className="filter-row restock-filters" style={{ justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <button className={activeTab === "priority" ? "blue-pill" : ""} onClick={() => setActiveTab("priority")}>
-              Priority Queue (Max-Heap)
+              Priority Queue
             </button>
             <button className={activeTab === "urgent" ? "blue-pill" : ""} onClick={() => setActiveTab("urgent")}>
               Urgent Only ({urgentCount})
             </button>
             <button className={activeTab === "fast" ? "blue-pill" : ""} onClick={() => setActiveTab("fast")}>
-              Fast Movers (Top-k)
+              Fast Movers
             </button>
             <button className={activeTab === "slow" ? "blue-pill" : ""} onClick={() => setActiveTab("slow")}>
-              Slow Movers (Bottom-k)
+              Slow Movers
             </button>
           </div>
 
@@ -109,6 +112,11 @@ export default function RestockPage({ navigate }: { navigate: Navigate }) {
           </div>
         </div>
 
+        {errorBanner && (
+          <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px 20px", borderRadius: "16px", marginBottom: "14px", fontWeight: 600 }}>
+            {errorBanner}
+          </div>
+        )}
         {banner && (
           <div style={{ background: "#e5efdb", color: "#245c45", padding: "12px 20px", borderRadius: "16px", marginBottom: "14px", fontWeight: 600 }}>
             {banner}
@@ -118,14 +126,14 @@ export default function RestockPage({ navigate }: { navigate: Navigate }) {
         <section className="panel table-panel">
           <div className="table-scroll">
             {loading ? (
-              <p style={{ padding: "24px", color: "#69756b" }}>Building Max-Heap restock queue…</p>
+              <p style={{ padding: "24px", color: "#69756b" }}>Loading restock queue…</p>
             ) : activeTab === "fast" || activeTab === "slow" ? (
               <table>
                 <thead>
                   <tr>
                     <th>Rank</th>
                     <th>Product</th>
-                    <th>Units Sold (Size-k Heap)</th>
+                    <th>Units Sold</th>
                   </tr>
                 </thead>
                 <tbody>
